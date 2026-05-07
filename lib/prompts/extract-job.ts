@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type Anthropic from "@anthropic-ai/sdk";
+import type OpenAI from "openai";
 import { jobAnalysisSchema } from "@/lib/schemas/analysis";
 
 export const EXTRACT_TOOL_NAME = "extract_job_analysis";
@@ -21,7 +21,7 @@ Rules — non-negotiable:
 5. Green flags: things that suggest a healthy team — explicit on-call rotation, written processes, transparent salary, mentorship, four-day week, public engineering blog, etc. Same verbatim-quote rule.
 6. seniorityRealVsAnnounced: compare the announced level vs the actual scope/responsibilities. A "junior" role asking for 5+ years and architectural decisions is really mid/senior. Justify in \`reasoning\`.
 7. questionsToAsk: 3 to 5 questions a candidate should ask to surface what's hidden (team size, on-call rotation, who you'd report to, why the role is open, how success is measured, etc.). Specific to this posting — not generic.
-8. Respond ONLY by calling the \`${EXTRACT_TOOL_NAME}\` tool. No prose, no preamble.
+8. Respond ONLY by calling the \`${EXTRACT_TOOL_NAME}\` function. No prose, no preamble.
 
 Language: respond in the same language as the posting. If the posting is in French, every translation, reasoning, and question must be in French.`;
 
@@ -30,9 +30,12 @@ const jsonSchema = z.toJSONSchema(jobAnalysisSchema, {
   unrepresentable: "any",
 }) as Record<string, unknown>;
 
-export const extractJobTool: Anthropic.Tool = {
-  name: EXTRACT_TOOL_NAME,
-  description:
-    "Extract structured analysis of a software engineering job posting. Every evidence/phrase field must be a verbatim quote from the source.",
-  input_schema: jsonSchema as Anthropic.Tool["input_schema"],
+export const extractJobTool: OpenAI.Chat.Completions.ChatCompletionTool = {
+  type: "function",
+  function: {
+    name: EXTRACT_TOOL_NAME,
+    description:
+      "Extract structured analysis of a software engineering job posting. Every evidence/phrase field must be a verbatim quote from the source.",
+    parameters: jsonSchema,
+  },
 };

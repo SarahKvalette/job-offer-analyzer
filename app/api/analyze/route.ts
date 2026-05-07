@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { analyzeJobPosting } from "@/lib/anthropic/client";
+import { analyzeJobPosting } from "@/lib/llm/client";
 import { toApiError } from "@/lib/errors";
 
 export const runtime = "nodejs";

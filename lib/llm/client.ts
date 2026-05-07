@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { AnalysisError } from "@/lib/errors";
 import {
   extractJobTool,
@@ -7,22 +7,23 @@ import {
 } from "@/lib/prompts/extract-job";
 import { jobAnalysisSchema, type JobAnalysis } from "@/lib/schemas/analysis";
 
-const MODEL = "claude-sonnet-4-5";
+const MODEL = "llama-3.3-70b-versatile";
+const BASE_URL = "https://api.groq.com/openai/v1";
 const MAX_INPUT_CHARS = 25_000;
 
-let cachedClient: Anthropic | null = null;
+let cachedClient: OpenAI | null = null;
 
-function getClient(): Anthropic {
+function getClient(): OpenAI {
   if (cachedClient) return cachedClient;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     throw new AnalysisError(
       "missing_api_key",
-      "ANTHROPIC_API_KEY is not configured on the server.",
+      "GROQ_API_KEY is not configured on the server.",
       { status: 500 }
     );
   }
-  cachedClient = new Anthropic({ apiKey });
+  cachedClient = new OpenAI({ apiKey, baseURL: BASE_URL });
   return cachedClient;
 }
 
@@ -40,15 +41,18 @@ export async function analyzeJobPosting(jobText: string): Promise<JobAnalysis> {
 
   const client = getClient();
 
-  let response: Anthropic.Message;
+  let response;
   try {
-    response = await client.messages.create({
+    response = await client.chat.completions.create({
       model: MODEL,
-      max_tokens: 4096,
+      temperature: 0.2,
       tools: [extractJobTool],
-      tool_choice: { type: "tool", name: EXTRACT_TOOL_NAME },
-      system: extractSystemPrompt,
+      tool_choice: {
+        type: "function",
+        function: { name: EXTRACT_TOOL_NAME },
+      },
       messages: [
+        { role: "system", content: extractSystemPrompt },
         {
           role: "user",
           content: `Analyze the following job posting:\n\n<posting>\n${trimmed}\n</posting>`,
@@ -63,12 +67,12 @@ export async function analyzeJobPosting(jobText: string): Promise<JobAnalysis> {
     );
   }
 
-  const toolUse = response.content.find(
-    (block): block is Anthropic.ToolUseBlock =>
-      block.type === "tool_use" && block.name === EXTRACT_TOOL_NAME
-  );
-
-  if (!toolUse) {
+  const toolCall = response.choices[0]?.message?.tool_calls?.[0];
+  if (
+    !toolCall ||
+    toolCall.type !== "function" ||
+    toolCall.function.name !== EXTRACT_TOOL_NAME
+  ) {
     throw new AnalysisError(
       "model_no_tool_call",
       "The model did not return a structured analysis. Try again or shorten the posting.",
@@ -76,7 +80,18 @@ export async function analyzeJobPosting(jobText: string): Promise<JobAnalysis> {
     );
   }
 
-  const parsed = jobAnalysisSchema.safeParse(toolUse.input);
+  let rawArgs: unknown;
+  try {
+    rawArgs = JSON.parse(toolCall.function.arguments);
+  } catch (err) {
+    throw new AnalysisError(
+      "model_invalid_output",
+      "The model returned malformed JSON.",
+      { cause: err, status: 502 }
+    );
+  }
+
+  const parsed = jobAnalysisSchema.safeParse(rawArgs);
   if (!parsed.success) {
     throw new AnalysisError(
       "model_invalid_output",
