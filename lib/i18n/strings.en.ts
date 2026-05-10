@@ -139,6 +139,26 @@ export const strings = {
       whatItMeans:
         "Some postings are pipeline padding rather than actual openings. Ask the recruiter why the role is open and the team's last 2 hires before investing time.",
     },
+    fit: {
+      title: "Personal fit",
+      eyebrow: "Personalised against your profile",
+      labels: { strong: "Strong fit", ok: "Decent fit", weak: "Weak fit" },
+      empty: {
+        title: "Set up your profile to see your personal fit score.",
+        body: "Your fit score is computed locally against the analysis on this page — no data leaves your browser.",
+        cta: "Open profile",
+      },
+      sections: {
+        strengths: "Strengths",
+        frictions: "Frictions",
+      },
+      tonalLabels: {
+        strong: "Why this fits",
+        ok: "Mixed signals",
+        weak: "Why this may not fit",
+      },
+      noNotes: "No notable strengths or frictions to surface.",
+    },
     salary: {
       title: "Salary",
       announcedLabel: "Announced",

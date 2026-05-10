@@ -13,6 +13,7 @@ import { HighlightProvider } from "./highlight-context";
 import { VerdictHero } from "./verdict-hero";
 import { CompanyCard } from "./company-card";
 import { SalaryCard } from "./salary-card";
+import { FitScoreCard } from "./fit-score-card";
 import { GhostJobBadge } from "./ghost-job-badge";
 import { LandingHero } from "./landing-hero";
 import { FeatureRail } from "./feature-rail";
@@ -175,6 +176,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
               jobText={current.jobText}
             />
           </div>
+          <FitScoreCard analysis={current.analysis} />
           <SalaryCard
             analysis={current.analysis}
             jobText={current.jobText}
