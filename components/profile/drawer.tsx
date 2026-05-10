@@ -19,6 +19,7 @@ import { StackPicker } from "./stack-picker";
 import { TagInput } from "./tag-input";
 import { WeightSlider } from "./weight-slider";
 import { CvSection } from "./cv-section";
+import { GoogleSection } from "./google-section";
 
 const NO_OP = () => () => {};
 
@@ -225,6 +226,9 @@ export function ProfileDrawer() {
                     hint={t.profile.sections.dealBreakers.hint}
                   />
                 </Section>
+
+                {/* Google */}
+                <GoogleSection />
 
                 {/* CV */}
                 <CvSection />
