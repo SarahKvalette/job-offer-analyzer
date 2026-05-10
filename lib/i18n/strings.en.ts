@@ -127,6 +127,18 @@ export const strings = {
         unknown: "Size unknown",
       },
     },
+    ghost: {
+      badgeLabel: "Ghost job suspect",
+      breakdownTitle: "Why we flagged this",
+      criteria: {
+        vagueDescription: "Description vagueness",
+        noSalary: "Salary disclosure",
+        externalRecruiter: "Posted by recruiter",
+        genericCompany: "Corporate fluff",
+      },
+      whatItMeans:
+        "Some postings are pipeline padding rather than actual openings. Ask the recruiter why the role is open and the team's last 2 hires before investing time.",
+    },
     salary: {
       title: "Salary",
       announcedLabel: "Announced",

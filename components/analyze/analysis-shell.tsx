@@ -13,6 +13,7 @@ import { HighlightProvider } from "./highlight-context";
 import { VerdictHero } from "./verdict-hero";
 import { CompanyCard } from "./company-card";
 import { SalaryCard } from "./salary-card";
+import { GhostJobBadge } from "./ghost-job-badge";
 import { LandingHero } from "./landing-hero";
 import { FeatureRail } from "./feature-rail";
 import { Button } from "@/components/ui/button";
@@ -168,6 +169,12 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
           <MobileTabs tab={mobileTab} onChange={setMobileTab} />
 
           <VerdictHero entry={current} />
+          <div className="-mt-1 flex flex-wrap gap-2">
+            <GhostJobBadge
+              analysis={current.analysis}
+              jobText={current.jobText}
+            />
+          </div>
           <SalaryCard
             analysis={current.analysis}
             jobText={current.jobText}
