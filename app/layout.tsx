@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { HistoryDrawer } from "@/components/history/drawer";
+import { ProfileDrawer } from "@/components/profile/drawer";
 import { Toaster } from "@/components/ui/sonner";
 import { t } from "@/lib/i18n";
 
@@ -57,6 +58,7 @@ export default function RootLayout({
                 </span>
               </div>
               <div className="flex items-center gap-1">
+                <ProfileDrawer />
                 <Suspense fallback={null}>
                   <HistoryDrawer />
                 </Suspense>
