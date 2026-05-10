@@ -26,7 +26,10 @@ import {
   newAnalysisId,
   saveAnalysis,
   subscribeToHistory,
+  updateApplication,
 } from "@/lib/storage/history";
+import { StatusPill } from "@/components/application/status-pill";
+import type { ApplicationStatus } from "@/lib/schemas/analysis";
 import type { JobAnalysis, StoredAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
@@ -152,7 +155,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
             mobileTab === "source" && "hidden lg:flex"
           )}
         >
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -162,9 +165,24 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
               <ArrowLeft className="size-4" />
               {t.form.newAnalysis}
             </Button>
-            <span className="text-muted-foreground text-xs">
-              {new Date(current.createdAt).toLocaleString()}
-            </span>
+            <div className="flex items-center gap-3">
+              <StatusPill
+                status={current.application?.status ?? "interested"}
+                onChange={(next: ApplicationStatus) => {
+                  updateApplication(current.id, {
+                    status: next,
+                    appliedAt:
+                      next === "applied" &&
+                      !current.application?.appliedAt
+                        ? Date.now()
+                        : current.application?.appliedAt ?? null,
+                  });
+                }}
+              />
+              <span className="text-muted-foreground text-xs">
+                {new Date(current.createdAt).toLocaleString()}
+              </span>
+            </div>
           </div>
 
           <MobileTabs tab={mobileTab} onChange={setMobileTab} />

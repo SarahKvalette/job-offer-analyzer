@@ -315,6 +315,101 @@ export const strings = {
       exportToast: "Profile exported.",
     },
   },
+  application: {
+    statusLabel: "Status",
+    statusChange: "Change status",
+    statuses: {
+      interested: "Interested",
+      applied: "Applied",
+      interview: "Interview",
+      offer: "Offer",
+      rejected: "Rejected",
+      ignored: "Ignored",
+    },
+    notes: {
+      title: "Notes",
+      placeholder: "Anything to remember about this offer (markdown OK)…",
+    },
+    tags: {
+      title: "Tags",
+      placeholder: "remote-first, dream, onsite-only…",
+    },
+    contacts: {
+      title: "Contacts",
+      empty: "No contacts yet.",
+      addLabel: "Add contact",
+      placeholder: { name: "Name", role: "Role", email: "Email", linkedin: "LinkedIn URL" },
+    },
+    nextAction: {
+      title: "Next action",
+      placeholder: "Send follow-up email…",
+      dueAtLabel: "Due",
+      none: "No next action.",
+      add: "Set next action",
+      clear: "Clear",
+    },
+    appliedAtLabel: "Applied on",
+    relativeDays: (n: number) => `${n} day${n === 1 ? "" : "s"} ago`,
+    section: {
+      title: "Application tracking",
+      hint: "Notes, tags, status — never leaves your browser.",
+    },
+  },
+  pipeline: {
+    triggerLabel: "Pipeline",
+    pageTitle: "Application pipeline",
+    pageSubtitle:
+      "Drag cards between columns to update their status. All local.",
+    empty: {
+      title: "No analyses yet",
+      body: "Analyse a posting to populate your pipeline.",
+    },
+    filters: {
+      tagPlaceholder: "Filter by tag",
+      minScoreLabel: "Min score",
+      clear: "Clear filters",
+    },
+    columns: {
+      interested: "Interested",
+      applied: "Applied",
+      interview: "Interview",
+      offer: "Offer",
+      rejected: "Rejected",
+      ignored: "Ignored",
+    },
+    cardOpen: "Open analysis",
+    selectionHint: (n: number) =>
+      `${n} selected · ${n >= 2 && n <= 3 ? "ready to compare" : "select 2 or 3 to compare"}`,
+    compare: "Compare",
+  },
+  reminders: {
+    title: "Needs your attention",
+    followupSuggestion: (company: string, days: number) =>
+      `${days} days since you applied to ${company} — send a follow-up?`,
+    upcomingAction: (company: string, action: string) =>
+      `${company}: ${action}`,
+    none: "Nothing pending.",
+  },
+  compare: {
+    pageTitle: "Compare offers",
+    pageSubtitle: "Side-by-side, with the diffs highlighted.",
+    backToPipeline: "Back to pipeline",
+    invalid: "Pick 2 or 3 entries from your pipeline to compare.",
+    rows: {
+      title: "Title",
+      company: "Company",
+      verdict: "Verdict",
+      fit: "Personal fit",
+      salary: "Salary",
+      remote: "Remote",
+      location: "Location",
+      seniority: "Seniority",
+      stack: "Required stack",
+      redFlags: "Red flags",
+      greenFlags: "Green flags",
+      status: "Status",
+    },
+  },
   history: {
     title: "History",
     subtitle: "Last 10 analyses, kept locally in your browser.",
