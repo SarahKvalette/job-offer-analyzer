@@ -29,6 +29,7 @@ import {
   updateApplication,
 } from "@/lib/storage/history";
 import { StatusPill } from "@/components/application/status-pill";
+import { TrackingCard } from "@/components/application/tracking-card";
 import type { ApplicationStatus } from "@/lib/schemas/analysis";
 import type { JobAnalysis, StoredAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
@@ -209,6 +210,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
           <SkillsSection skills={current.analysis.skills} />
           <MetaCard meta={current.analysis.meta} />
           <QuestionsList entry={current} />
+          <TrackingCard entry={current} />
         </div>
 
         {/* RIGHT — source */}
