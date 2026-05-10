@@ -10,7 +10,7 @@ import { CommandPalette } from "@/components/palette/command-palette";
 import { Toaster } from "@/components/ui/sonner";
 import { t } from "@/lib/i18n";
 import Link from "next/link";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, BarChart3 } from "lucide-react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -69,6 +69,13 @@ export default function RootLayout({
                   <span className="hidden sm:inline">
                     {t.pipeline.triggerLabel}
                   </span>
+                </Link>
+                <Link
+                  href="/stats"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium transition-colors"
+                >
+                  <BarChart3 className="size-4" />
+                  <span className="hidden sm:inline">Stats</span>
                 </Link>
                 <CommandPalette />
                 <ProfileDrawer />
