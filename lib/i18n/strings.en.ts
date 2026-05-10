@@ -214,6 +214,18 @@ export const strings = {
       copyAria: "Copy questions",
       copyToast: "Questions copied",
       copyError: "Couldn't copy",
+      tabs: {
+        all: "All",
+        rh: "Recruiter",
+        technique: "Technical",
+        manager: "Hiring manager",
+        final: "Closing",
+      },
+      categorize: {
+        cta: "Group by interview stage",
+        loading: "Categorising questions…",
+        failed: "Categorisation failed. Showing all questions.",
+      },
     },
     source: {
       title: "Original posting",

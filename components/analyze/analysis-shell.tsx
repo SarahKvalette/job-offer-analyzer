@@ -190,7 +190,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
           )}
           <SkillsSection skills={current.analysis.skills} />
           <MetaCard meta={current.analysis.meta} />
-          <QuestionsList questions={current.analysis.questionsToAsk} />
+          <QuestionsList entry={current} />
         </div>
 
         {/* RIGHT — source */}
