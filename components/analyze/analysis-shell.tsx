@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { JobInputForm } from "./job-input-form";
 import { ResultSkeleton } from "./result-skeleton";
@@ -18,8 +18,11 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText, LayoutPanelLeft } from "lucide-react";
 import {
   getById,
+  getHistorySnapshot,
+  getHistoryServerSnapshot,
   newAnalysisId,
   saveAnalysis,
+  subscribeToHistory,
 } from "@/lib/storage/history";
 import type { JobAnalysis, StoredAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
@@ -33,28 +36,38 @@ type ApiError = { error: { code: string; message: string } };
 type MobileTab = "analysis" | "source";
 
 export function AnalysisShell({ initialId }: { initialId: string | null }) {
-  const [status, setStatus] = useState<Status>("idle");
-  const [current, setCurrent] = useState<StoredAnalysis | null>(null);
+  // The id we currently want to display. Starts from the URL prop, then can
+  // be overridden after a successful submission or a "new analysis" reset.
+  const [viewingId, setViewingId] = useState<string | null>(initialId);
+  const [submitting, setSubmitting] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>("analysis");
 
-  useEffect(() => {
-    if (!initialId) {
-      setStatus("idle");
-      setCurrent(null);
-      return;
-    }
-    const stored = getById(initialId);
-    if (stored) {
-      setCurrent(stored);
-      setStatus("success");
-    } else {
-      setStatus("idle");
-      setCurrent(null);
-    }
-  }, [initialId]);
+  // React 19 pattern for adjusting state when a prop changes during render —
+  // avoids the setState-in-useEffect anti-pattern.
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [trackedInitialId, setTrackedInitialId] = useState(initialId);
+  if (trackedInitialId !== initialId) {
+    setTrackedInitialId(initialId);
+    setViewingId(initialId);
+  }
+
+  // Subscribe to history mutations so the displayed entry updates if the
+  // user deletes / re-saves it from elsewhere (e.g. the history drawer).
+  useSyncExternalStore(
+    subscribeToHistory,
+    getHistorySnapshot,
+    getHistoryServerSnapshot
+  );
+
+  const current: StoredAnalysis | null = viewingId ? getById(viewingId) : null;
+  const status: Status = submitting
+    ? "loading"
+    : current
+    ? "success"
+    : "idle";
 
   const handleSubmit = useCallback(async (jobText: string) => {
-    setStatus("loading");
+    setSubmitting(true);
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
@@ -73,19 +86,18 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
         analysis: data.analysis,
       };
       saveAnalysis(entry);
-      setCurrent(entry);
-      setStatus("success");
+      setViewingId(entry.id);
       window.history.replaceState(null, "", `/?id=${entry.id}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : t.errors.analysisFailed;
       toast.error(msg);
-      setStatus("idle");
+    } finally {
+      setSubmitting(false);
     }
   }, []);
 
   const handleReset = useCallback(() => {
-    setStatus("idle");
-    setCurrent(null);
+    setViewingId(null);
     setMobileTab("analysis");
     window.history.replaceState(null, "", "/");
   }, []);

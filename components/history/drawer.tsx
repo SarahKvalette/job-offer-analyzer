@@ -1,13 +1,14 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Trash2, FileText, Search, X, History, Clock } from "lucide-react";
 import {
   deleteAnalysis,
-  getHistory,
+  getHistorySnapshot,
+  getHistoryServerSnapshot,
   subscribeToHistory,
 } from "@/lib/storage/history";
 import type { StoredAnalysis } from "@/lib/schemas/analysis";
@@ -30,7 +31,7 @@ function formatRelative(ts: number): string {
 
 type Group = { label: string; items: StoredAnalysis[] };
 
-function groupItems(items: StoredAnalysis[]): Group[] {
+function groupItems(items: readonly StoredAnalysis[]): Group[] {
   const now = new Date();
   const startOfToday = new Date(
     now.getFullYear(),
@@ -62,17 +63,19 @@ function groupItems(items: StoredAnalysis[]): Group[] {
 
 export function HistoryDrawer() {
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<StoredAnalysis[]>([]);
-  const [hydrated, setHydrated] = useState(false);
   const [query, setQuery] = useState("");
   const params = useSearchParams();
   const activeId = params.get("id");
 
-  useEffect(() => {
-    setItems(getHistory());
-    setHydrated(true);
-    return subscribeToHistory(() => setItems(getHistory()));
-  }, []);
+  // useSyncExternalStore avoids the setState-in-effect anti-pattern. The
+  // client snapshot is cached in lib/storage/history (stable reference) and
+  // invalidated on writes / cross-tab storage events.
+  const items = useSyncExternalStore(
+    subscribeToHistory,
+    getHistorySnapshot,
+    getHistoryServerSnapshot
+  );
+  const hydrated = items !== getHistoryServerSnapshot();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

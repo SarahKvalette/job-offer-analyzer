@@ -10,6 +10,19 @@ const STORAGE_KEY = "joa.history.v1";
 const MAX_ENTRIES = 10;
 const CHANGE_EVENT = "joa:history-change";
 
+const EMPTY_HISTORY: readonly StoredAnalysis[] = Object.freeze([]);
+
+/**
+ * Cached, sorted snapshot of localStorage. The same reference is returned
+ * across calls until the underlying data changes, so React 19's
+ * `useSyncExternalStore` can rely on `Object.is` to detect updates.
+ */
+let snapshot: StoredAnalysis[] | null = null;
+
+function invalidateSnapshot(): void {
+  snapshot = null;
+}
+
 function readAll(): StoredAnalysis[] {
   if (typeof window === "undefined") return [];
   const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -28,15 +41,30 @@ function readAll(): StoredAnalysis[] {
 function writeAll(entries: StoredAnalysis[]): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  invalidateSnapshot();
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
-export function getHistory(): StoredAnalysis[] {
-  return readAll().sort((a, b) => b.createdAt - a.createdAt);
+/** Stable, cached snapshot — safe for `useSyncExternalStore`. */
+export function getHistorySnapshot(): readonly StoredAnalysis[] {
+  if (snapshot === null) {
+    snapshot = readAll().sort((a, b) => b.createdAt - a.createdAt);
+  }
+  return snapshot;
+}
+
+/** Snapshot for SSR / hydration. Always the same frozen empty array. */
+export function getHistoryServerSnapshot(): readonly StoredAnalysis[] {
+  return EMPTY_HISTORY;
+}
+
+/** Convenience for one-off reads. */
+export function getHistory(): readonly StoredAnalysis[] {
+  return getHistorySnapshot();
 }
 
 export function getById(id: string): StoredAnalysis | null {
-  return readAll().find((entry) => entry.id === id) ?? null;
+  return getHistorySnapshot().find((entry) => entry.id === id) ?? null;
 }
 
 export function saveAnalysis(entry: StoredAnalysis): void {
@@ -58,7 +86,12 @@ export function deleteAnalysis(id: string): void {
 
 export function subscribeToHistory(listener: () => void): () => void {
   if (typeof window === "undefined") return () => {};
-  const handler = () => listener();
+  // External storage events (e.g. other tabs writing the same key) may bypass
+  // our writeAll() invalidation, so refresh the cache on every notification.
+  const handler = () => {
+    invalidateSnapshot();
+    listener();
+  };
   window.addEventListener(CHANGE_EVENT, handler);
   window.addEventListener("storage", handler);
   return () => {
