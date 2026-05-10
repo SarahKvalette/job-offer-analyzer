@@ -1,5 +1,6 @@
 import { Kanban } from "@/components/application/kanban";
 import { RemindersBanner } from "@/components/application/reminders-banner";
+import { GmailScanPanel } from "@/components/application/gmail-scan-panel";
 import { t } from "@/lib/i18n";
 
 export const metadata = { title: "Pipeline · Job Offer Analyzer" };
@@ -16,6 +17,7 @@ export default function PipelinePage() {
         </p>
       </header>
       <RemindersBanner />
+      <GmailScanPanel />
       <Kanban />
     </div>
   );
