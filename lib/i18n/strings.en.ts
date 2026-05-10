@@ -515,6 +515,18 @@ export const strings = {
   errors: {
     analysisFailed: "Analysis failed.",
   },
+  auth: {
+    pageTitle: "Owner sign-in",
+    pageSubtitle:
+      "Only the owner can use the cloud features (Gmail / Calendar / digest). Public features stay open.",
+    passwordLabel: "Owner password",
+    submit: "Sign in",
+    submitting: "Signing in…",
+    success: "Signed in.",
+    incorrect: "Incorrect password.",
+    failed: "Couldn't sign in.",
+    logout: "Sign out",
+  },
 } as const;
 
 export type Strings = typeof strings;
