@@ -8,6 +8,8 @@ import { HistoryDrawer } from "@/components/history/drawer";
 import { ProfileDrawer } from "@/components/profile/drawer";
 import { Toaster } from "@/components/ui/sonner";
 import { t } from "@/lib/i18n";
+import Link from "next/link";
+import { LayoutGrid } from "lucide-react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,6 +60,15 @@ export default function RootLayout({
                 </span>
               </div>
               <div className="flex items-center gap-1">
+                <Link
+                  href="/pipeline"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium transition-colors"
+                >
+                  <LayoutGrid className="size-4" />
+                  <span className="hidden sm:inline">
+                    {t.pipeline.triggerLabel}
+                  </span>
+                </Link>
                 <ProfileDrawer />
                 <Suspense fallback={null}>
                   <HistoryDrawer />
