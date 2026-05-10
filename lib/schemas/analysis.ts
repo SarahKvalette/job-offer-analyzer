@@ -118,12 +118,29 @@ export type JobAnalysis = z.infer<typeof jobAnalysisSchema>;
  */
 export const CURRENT_STORAGE_VERSION = 1;
 
+export const questionStageEnum = z.enum(["rh", "technique", "manager", "final"]);
+export type QuestionStage = z.infer<typeof questionStageEnum>;
+
+export const categorizedQuestionsSchema = z.object({
+  rh: z.array(z.string()),
+  technique: z.array(z.string()),
+  manager: z.array(z.string()),
+  final: z.array(z.string()),
+});
+export type CategorizedQuestions = z.infer<typeof categorizedQuestionsSchema>;
+
 export const storedAnalysisSchema = z.object({
   schemaVersion: z.number().optional(),
   id: z.string(),
   createdAt: z.number(),
   jobText: z.string(),
   analysis: jobAnalysisSchema,
+  /**
+   * Lazy-computed result of the question categorisation tool call.
+   * Cached on the stored entry so we don't re-prompt every time the user
+   * re-opens the analysis.
+   */
+  categorizedQuestions: categorizedQuestionsSchema.optional(),
 });
 
 export type StoredAnalysis = z.infer<typeof storedAnalysisSchema>;
