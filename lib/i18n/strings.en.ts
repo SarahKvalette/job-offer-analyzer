@@ -65,6 +65,15 @@ export const strings = {
       onlyPdfError: "Drop a PDF file (or paste text directly).",
       extractFailed: "PDF extraction failed.",
     },
+    url: {
+      detected: "Looks like a job URL.",
+      fetch: "Fetch the page",
+      fetching: "Fetching…",
+      fetched: "Page extracted — review and analyze.",
+      failed: "Couldn't fetch this URL.",
+      hostUnsupported:
+        "Only LinkedIn, Welcome to the Jungle, Indeed, JobTeaser are supported. Paste the text directly otherwise.",
+    },
   },
   loading: {
     messages: [

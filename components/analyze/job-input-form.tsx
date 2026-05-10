@@ -2,7 +2,15 @@
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, FileUp, FileText, X, CornerDownLeft } from "lucide-react";
+import {
+  Sparkles,
+  Loader2,
+  FileUp,
+  FileText,
+  X,
+  CornerDownLeft,
+  Link as LinkIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
@@ -37,8 +45,11 @@ export function JobInputForm({
   const [text, setText] = useState("");
   const [pdfName, setPdfName] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [urlBusy, setUrlBusy] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const detectedUrl = detectJobUrl(text);
 
   const trimmedLen = text.trim().length;
   const tooShort = trimmedLen < MIN_CHARS;
@@ -72,6 +83,29 @@ export function JobInputForm({
       setPdfName(null);
     } finally {
       setPdfBusy(false);
+    }
+  };
+
+  const handleFetchUrl = async (url: string) => {
+    setUrlBusy(true);
+    try {
+      const res = await fetch("/api/fetch-job", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => null)) as ApiError | null;
+        throw new Error(err?.error?.message ?? t.form.url.failed);
+      }
+      const data = (await res.json()) as { text: string };
+      setText(data.text);
+      toast.success(t.form.url.fetched);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t.form.url.failed;
+      toast.error(msg);
+    } finally {
+      setUrlBusy(false);
     }
   };
 
@@ -142,6 +176,36 @@ export function JobInputForm({
         {dragOver && (
           <div className="text-[color:var(--accent-violet)] pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-[color:var(--accent-violet)]/5 text-sm font-medium backdrop-blur-sm">
             <FileUp className="mr-2 size-5" /> {t.form.dropPdf}
+          </div>
+        )}
+
+        {/* URL detected banner */}
+        {detectedUrl && !urlBusy && (
+          <div className="bg-[color:var(--accent-violet)]/5 border-t border-[color:var(--accent-violet)]/30 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+            <div className="flex items-center gap-2 text-xs">
+              <LinkIcon className="text-[color:var(--accent-violet)] size-3.5" />
+              <span className="text-foreground/90 font-medium">
+                {t.form.url.detected}
+              </span>
+              <span className="text-muted-foreground truncate">
+                {new URL(detectedUrl).host}
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => handleFetchUrl(detectedUrl)}
+            >
+              <Sparkles className="size-3.5" />
+              {t.form.url.fetch}
+            </Button>
+          </div>
+        )}
+        {urlBusy && (
+          <div className="bg-[color:var(--accent-violet)]/5 border-t border-[color:var(--accent-violet)]/30 flex items-center gap-2 px-4 py-2.5 text-xs">
+            <Loader2 className="text-[color:var(--accent-violet)] size-3.5 animate-spin" />
+            <span className="text-foreground/90">{t.form.url.fetching}</span>
           </div>
         )}
 
@@ -217,6 +281,36 @@ export function JobInputForm({
       </div>
     </form>
   );
+}
+
+const SUPPORTED_HOSTS = [
+  "linkedin.com",
+  "welcometothejungle.com",
+  "indeed.com",
+  "indeed.fr",
+  "jobteaser.com",
+];
+
+/**
+ * Returns the URL when the textarea content is essentially "just a URL on
+ * a supported host" (allowing surrounding whitespace). Returns null
+ * otherwise — we don't want to nag on every "Apply at https://…" mention
+ * inside a real posting.
+ */
+function detectJobUrl(value: string): string | null {
+  const trimmed = value.trim();
+  if (trimmed.length === 0 || trimmed.length > 500) return null;
+  if (/\s/.test(trimmed)) return null; // not a single URL line
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+  const host = url.hostname.toLowerCase();
+  if (!SUPPORTED_HOSTS.some((h) => host.endsWith(h))) return null;
+  return url.toString();
 }
 
 function CharCount({
