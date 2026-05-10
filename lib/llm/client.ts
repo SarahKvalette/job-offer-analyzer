@@ -16,6 +16,11 @@ import {
   categorizeTool,
   CATEGORIZE_TOOL_NAME,
 } from "@/lib/prompts/categorize-questions";
+import {
+  buildGenerationPrompt,
+  type GenerationKind,
+  type GenerationTone,
+} from "@/lib/prompts/generate-content";
 
 const MODEL = "llama-3.3-70b-versatile";
 const BASE_URL = "https://api.groq.com/openai/v1";
@@ -195,4 +200,59 @@ export async function categorizeQuestions(
   }
 
   return parsed.data;
+}
+
+/**
+ * Free-form generation: cover letter, LinkedIn message, application email,
+ * interview prep, ATS keyword suggestions. The output is plain text /
+ * Markdown — there's no tool call to enforce structure here.
+ */
+export async function generateContent(input: {
+  kind: GenerationKind;
+  tone: GenerationTone;
+  jobText: string;
+  cvText: string;
+  notes?: string;
+}): Promise<string> {
+  if (!input.jobText?.trim()) {
+    throw new AnalysisError("empty_input", "Job text is empty.");
+  }
+  if (!input.cvText?.trim()) {
+    throw new AnalysisError(
+      "empty_input",
+      "Upload or paste your CV in the profile drawer first."
+    );
+  }
+
+  const { system, user } = buildGenerationPrompt(input);
+  const client = getClient();
+
+  let response;
+  try {
+    response = await client.chat.completions.create({
+      model: MODEL,
+      temperature: 0.4,
+      max_completion_tokens: 1200,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    });
+  } catch (err) {
+    throw new AnalysisError(
+      "upstream_error",
+      "The model is unavailable right now. Please try again in a few seconds.",
+      { cause: err, status: 502 }
+    );
+  }
+
+  const content = response.choices[0]?.message?.content;
+  if (typeof content !== "string" || content.trim().length === 0) {
+    throw new AnalysisError(
+      "model_invalid_output",
+      "The model returned an empty generation.",
+      { status: 502 }
+    );
+  }
+  return content.trim();
 }

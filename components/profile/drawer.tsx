@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { StackPicker } from "./stack-picker";
 import { TagInput } from "./tag-input";
 import { WeightSlider } from "./weight-slider";
+import { CvSection } from "./cv-section";
 
 const NO_OP = () => () => {};
 
@@ -224,6 +225,9 @@ export function ProfileDrawer() {
                     hint={t.profile.sections.dealBreakers.hint}
                   />
                 </Section>
+
+                {/* CV */}
+                <CvSection />
 
                 {/* Weights */}
                 <Section
