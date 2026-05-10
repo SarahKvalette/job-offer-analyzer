@@ -59,4 +59,34 @@ describe("migrateStoredEntry", () => {
     expect(out?.analysis.meta.title).toBe(VALID_ANALYSIS.meta.title);
     expect(out?.jobText).toBe(LEGACY_ENTRY.jobText);
   });
+
+  it("v1 → v2: adds default application object on legacy entries", () => {
+    const v1 = { ...LEGACY_ENTRY, schemaVersion: 1 };
+    const out = migrateStoredEntry(v1);
+    expect(out?.application).toBeDefined();
+    expect(out?.application?.status).toBe("interested");
+    expect(out?.application?.lastInteractionAt).toBe(LEGACY_ENTRY.createdAt);
+    expect(out?.application?.notes).toBe("");
+    expect(out?.application?.tags).toEqual([]);
+  });
+
+  it("v1 → v2: leaves an existing application object untouched", () => {
+    const v1WithApp = {
+      ...LEGACY_ENTRY,
+      schemaVersion: 1,
+      application: {
+        status: "applied",
+        appliedAt: 1_700_000_000_000,
+        lastInteractionAt: 1_700_000_000_000,
+        notes: "Already noted",
+        tags: ["dream"],
+        contacts: [],
+        nextAction: null,
+      },
+    };
+    const out = migrateStoredEntry(v1WithApp);
+    expect(out?.application?.status).toBe("applied");
+    expect(out?.application?.notes).toBe("Already noted");
+    expect(out?.application?.tags).toEqual(["dream"]);
+  });
 });

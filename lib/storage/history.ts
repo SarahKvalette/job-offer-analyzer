@@ -71,6 +71,15 @@ export function saveAnalysis(entry: StoredAnalysis): void {
   const stamped: StoredAnalysis = {
     ...entry,
     schemaVersion: entry.schemaVersion ?? CURRENT_STORAGE_VERSION,
+    application: entry.application ?? {
+      status: "interested",
+      appliedAt: null,
+      lastInteractionAt: entry.createdAt,
+      notes: "",
+      tags: [],
+      contacts: [],
+      nextAction: null,
+    },
   };
   const filtered = readAll().filter((existing) => existing.id !== stamped.id);
   const next = [stamped, ...filtered]
@@ -82,6 +91,40 @@ export function saveAnalysis(entry: StoredAnalysis): void {
 export function deleteAnalysis(id: string): void {
   const next = readAll().filter((entry) => entry.id !== id);
   writeAll(next);
+}
+
+/**
+ * Patch the application sub-object on an existing entry. Ignores the call
+ * when the id isn't found. Bumps `lastInteractionAt` to now on every
+ * patch so the reminders heuristic stays accurate.
+ */
+export function updateApplication(
+  id: string,
+  patch: Partial<NonNullable<StoredAnalysis["application"]>>
+): void {
+  const all = readAll();
+  const idx = all.findIndex((e) => e.id === id);
+  if (idx === -1) return;
+  const entry = all[idx];
+  const current = entry.application ?? {
+    status: "interested" as const,
+    appliedAt: null,
+    lastInteractionAt: entry.createdAt,
+    notes: "",
+    tags: [],
+    contacts: [],
+    nextAction: null,
+  };
+  const updated: StoredAnalysis = {
+    ...entry,
+    application: {
+      ...current,
+      ...patch,
+      lastInteractionAt: Date.now(),
+    },
+  };
+  all[idx] = updated;
+  writeAll(all);
 }
 
 export function subscribeToHistory(listener: () => void): () => void {
