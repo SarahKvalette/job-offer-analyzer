@@ -4,9 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { HistorySidebar } from "@/components/history/sidebar";
+import { HistoryDrawer } from "@/components/history/drawer";
 import { Toaster } from "@/components/ui/sonner";
-import { Sparkles } from "lucide-react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,22 +34,38 @@ export default function RootLayout({
     >
       <body className="bg-background text-foreground min-h-full">
         <ThemeProvider>
-          <div className="flex min-h-screen">
-            <Suspense fallback={null}>
-              <HistorySidebar />
-            </Suspense>
-            <div className="flex min-w-0 flex-1 flex-col">
-              <header className="flex h-14 items-center justify-between border-b px-6">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="text-primary size-4" />
-                  <span className="text-sm font-medium">
-                    Job Offer Analyzer
+          <div className="flex min-h-screen flex-col">
+            <header className="glass sticky top-0 z-30 flex h-14 items-center justify-between border-b px-6">
+              <div className="flex items-center gap-2.5">
+                <div className="relative flex size-6 items-center justify-center">
+                  <span
+                    aria-hidden
+                    className="bg-foreground absolute inset-0 rounded-md"
+                  />
+                  <span
+                    aria-hidden
+                    className="text-background relative font-mono text-[11px] font-bold leading-none"
+                  >
+                    /j
                   </span>
                 </div>
+                <span className="text-sm font-medium tracking-tight">
+                  Job Offer Analyzer
+                </span>
+                <span className="text-muted-foreground border-border ml-1 hidden rounded-md border px-1.5 py-0.5 font-mono text-[10px] sm:block">
+                  v0.1
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Suspense fallback={null}>
+                  <HistoryDrawer />
+                </Suspense>
                 <ThemeToggle />
-              </header>
-              <main className="flex-1 px-6 py-8">{children}</main>
-            </div>
+              </div>
+            </header>
+            <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
+              {children}
+            </main>
           </div>
           <Toaster richColors closeButton />
         </ThemeProvider>

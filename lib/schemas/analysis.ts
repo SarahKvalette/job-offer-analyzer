@@ -14,6 +14,37 @@ const remoteEnum = z.enum(["full", "hybrid", "onsite", "unknown"]);
 
 const severityEnum = z.enum(["low", "medium", "high"]);
 
+const sentimentEnum = z.enum(["apply", "caution", "avoid"]);
+
+const verdictSchema = z.object({
+  score: z.number().min(0).max(10),
+  sentiment: sentimentEnum,
+  oneLiner: z.string(),
+});
+
+const companySizeEnum = z.enum([
+  "startup",
+  "scaleup",
+  "midsize",
+  "enterprise",
+  "unknown",
+]);
+
+const companyInsightSchema = z.object({
+  sizeEstimate: companySizeEnum,
+  industry: z.string().nullable(),
+  stage: z.string().nullable(),
+  funding: z.string().nullable(),
+  techStack: z.array(z.string()),
+  perks: z.array(z.string()),
+  cultureSignals: z.array(
+    z.object({
+      phrase: z.string(),
+      meaning: z.string(),
+    })
+  ),
+});
+
 const salarySchema = z
   .object({
     min: z.number(),
@@ -23,6 +54,8 @@ const salarySchema = z
   .nullable();
 
 export const jobAnalysisSchema = z.object({
+  verdict: verdictSchema.optional(),
+  company: companyInsightSchema.optional(),
   meta: z.object({
     title: z.string(),
     company: z.string().nullable(),

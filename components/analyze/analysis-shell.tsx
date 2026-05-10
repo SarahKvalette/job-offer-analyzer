@@ -10,23 +10,31 @@ import { RealityCheck } from "./reality-check";
 import { QuestionsList } from "./questions-list";
 import { SourceHighlighter } from "./source-highlighter";
 import { HighlightProvider } from "./highlight-context";
+import { VerdictHero } from "./verdict-hero";
+import { CompanyCard } from "./company-card";
+import { LandingHero } from "./landing-hero";
+import { FeatureRail } from "./feature-rail";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText, LayoutPanelLeft } from "lucide-react";
 import {
   getById,
   newAnalysisId,
   saveAnalysis,
 } from "@/lib/storage/history";
 import type { JobAnalysis, StoredAnalysis } from "@/lib/schemas/analysis";
+import { cn } from "@/lib/utils";
 
 type Status = "idle" | "loading" | "success";
 
 type ApiSuccess = { analysis: JobAnalysis };
 type ApiError = { error: { code: string; message: string } };
 
+type MobileTab = "analysis" | "source";
+
 export function AnalysisShell({ initialId }: { initialId: string | null }) {
   const [status, setStatus] = useState<Status>("idle");
   const [current, setCurrent] = useState<StoredAnalysis | null>(null);
+  const [mobileTab, setMobileTab] = useState<MobileTab>("analysis");
 
   useEffect(() => {
     if (!initialId) {
@@ -77,22 +85,33 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
   const handleReset = useCallback(() => {
     setStatus("idle");
     setCurrent(null);
+    setMobileTab("analysis");
     window.history.replaceState(null, "", "/");
   }, []);
 
   if (status === "idle") {
     return (
-      <div className="mx-auto max-w-3xl">
-        <header className="mb-6">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Decode any job posting in 10 seconds.
-          </h1>
-          <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-            Paste a tech job offer. Get the real seniority, hidden red flags, the
-            skills they forgot to list, and 3-5 questions to ask the recruiter.
+      <div className="relative">
+        <div
+          aria-hidden
+          className="hero-bg pointer-events-none absolute inset-x-0 top-[-120px] -z-10 h-[640px]"
+        />
+        <div className="mx-auto max-w-3xl pt-2 sm:pt-6">
+          <LandingHero />
+          <div className="relative">
+            {/* Subtle violet glow under the form — magnetic feel */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-8 -bottom-4 -z-10 h-12 rounded-full bg-[color:var(--accent-violet)]/30 blur-3xl dark:bg-[color:var(--accent-violet)]/40"
+            />
+            <JobInputForm pending={false} onSubmit={handleSubmit} />
+          </div>
+          <p className="mono-hint mt-6 flex items-center gap-2">
+            <span className="bg-emerald-500 size-1.5 rounded-full" />
+            Stored locally · Nothing shared · ⌘ + Enter to submit
           </p>
-        </header>
-        <JobInputForm pending={false} onSubmit={handleSubmit} />
+          <FeatureRail />
+        </div>
       </div>
     );
   }
@@ -110,7 +129,13 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
   return (
     <HighlightProvider>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <div className="flex flex-col gap-4">
+        {/* LEFT — analysis */}
+        <div
+          className={cn(
+            "flex flex-col gap-4",
+            mobileTab === "source" && "hidden lg:flex"
+          )}
+        >
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
@@ -125,15 +150,78 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
               {new Date(current.createdAt).toLocaleString()}
             </span>
           </div>
-          <MetaCard meta={current.analysis.meta} />
-          <SkillsSection skills={current.analysis.skills} />
+
+          <MobileTabs tab={mobileTab} onChange={setMobileTab} />
+
+          <VerdictHero entry={current} />
           <RealityCheck realityCheck={current.analysis.realityCheck} />
+          {current.analysis.company && (
+            <CompanyCard company={current.analysis.company} />
+          )}
+          <SkillsSection skills={current.analysis.skills} />
+          <MetaCard meta={current.analysis.meta} />
           <QuestionsList questions={current.analysis.questionsToAsk} />
         </div>
-        <aside className="bg-card lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] rounded-lg border">
+
+        {/* RIGHT — source */}
+        <aside
+          className={cn(
+            "bg-card rounded-lg border lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]",
+            mobileTab === "analysis" && "hidden lg:block"
+          )}
+        >
+          <div className="lg:hidden">
+            <MobileTabs tab={mobileTab} onChange={setMobileTab} />
+          </div>
           <SourceHighlighter source={current.jobText} />
         </aside>
       </div>
     </HighlightProvider>
+  );
+}
+
+function MobileTabs({
+  tab,
+  onChange,
+}: {
+  tab: MobileTab;
+  onChange: (t: MobileTab) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      className="bg-muted/60 grid grid-cols-2 gap-1 rounded-md p-1 lg:hidden"
+    >
+      <button
+        type="button"
+        role="tab"
+        aria-selected={tab === "analysis"}
+        onClick={() => onChange("analysis")}
+        className={cn(
+          "flex items-center justify-center gap-1.5 rounded px-2 py-1.5 text-xs font-medium transition-colors",
+          tab === "analysis"
+            ? "bg-background text-foreground shadow-sm"
+            : "text-muted-foreground"
+        )}
+      >
+        <LayoutPanelLeft className="size-3.5" />
+        Analysis
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={tab === "source"}
+        onClick={() => onChange("source")}
+        className={cn(
+          "flex items-center justify-center gap-1.5 rounded px-2 py-1.5 text-xs font-medium transition-colors",
+          tab === "source"
+            ? "bg-background text-foreground shadow-sm"
+            : "text-muted-foreground"
+        )}
+      >
+        <FileText className="size-3.5" />
+        Source
+      </button>
+    </div>
   );
 }
