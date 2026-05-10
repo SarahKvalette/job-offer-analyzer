@@ -341,6 +341,23 @@ export const strings = {
           culture: "Team & culture",
         },
       },
+      google: {
+        title: "Google account",
+        hint: "Optional — only the owner can connect. Used to detect recruiter emails (Gmail read-only) and create interview events (Calendar). Nothing is sent without you clicking a button.",
+        connect: "Connect Google",
+        disconnect: "Disconnect",
+        connecting: "Redirecting…",
+        disconnecting: "Disconnecting…",
+        connectedAs: (email: string) => `Connected as ${email}`,
+        notOwnerHint: "Sign in as the owner to connect Google.",
+        signIn: "Sign in",
+        notConfiguredHint:
+          "Server isn't configured yet — set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and provision Vercel KV first.",
+        toastConnected: (email: string) => `Google connected as ${email}`,
+        toastConnectedGeneric: "Google connected",
+        toastDisconnected: "Google disconnected.",
+        toastError: (reason: string) => `Couldn't connect Google (${reason}).`,
+      },
       cv: {
         title: "Your CV",
         hint: "Used to generate cover letters and tailored messages. PDF upload extracts the text locally — the file itself never leaves your browser.",
