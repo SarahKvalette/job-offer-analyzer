@@ -107,6 +107,13 @@ export function CommandPalette() {
         onRun: () => navigateTo("/pipeline"),
       },
       {
+        id: "open-stats",
+        group: "navigate",
+        label: t.palette.actions.openStats,
+        icon: <ArrowRight className="size-4 opacity-50" />,
+        onRun: () => navigateTo("/stats"),
+      },
+      {
         id: "open-profile",
         group: "navigate",
         label: t.palette.actions.openProfile,

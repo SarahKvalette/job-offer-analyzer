@@ -20,6 +20,7 @@ import { TagInput } from "./tag-input";
 import { WeightSlider } from "./weight-slider";
 import { CvSection } from "./cv-section";
 import { GoogleSection } from "./google-section";
+import { DigestSection } from "./digest-section";
 
 const NO_OP = () => () => {};
 
@@ -229,6 +230,9 @@ export function ProfileDrawer() {
 
                 {/* Google */}
                 <GoogleSection />
+
+                {/* Digest email */}
+                <DigestSection />
 
                 {/* CV */}
                 <CvSection />
