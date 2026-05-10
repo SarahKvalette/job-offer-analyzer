@@ -127,6 +127,26 @@ export const strings = {
         unknown: "Size unknown",
       },
     },
+    salary: {
+      title: "Salary",
+      announcedLabel: "Announced",
+      marketLabel: "Market median",
+      notDisclosed: "Not disclosed",
+      notDisclosedHint:
+        "Healthy companies state numbers. Ask the recruiter for the band before any interview round.",
+      benchmarkUnavailable: "No benchmark for this role/level/location.",
+      benchmarkSourceFR: "France · 2025",
+      position: {
+        below: (delta: number) => `${Math.abs(delta)}% below market`,
+        parity: "Within market range",
+        above: (delta: number) => `${Math.abs(delta)}% above market`,
+      },
+      perPeriod: {
+        year: "/ year",
+        month: "/ month",
+        day: "/ day",
+      },
+    },
     skills: {
       title: "Skills",
       required: "Required",
