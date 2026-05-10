@@ -1,0 +1,335 @@
+"use client";
+
+import { useState } from "react";
+import { ClipboardList, Plus, Trash2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { TagInput } from "@/components/profile/tag-input";
+import { updateApplication } from "@/lib/storage/history";
+import type {
+  Application,
+  Contact,
+  StoredAnalysis,
+} from "@/lib/schemas/analysis";
+import { t } from "@/lib/i18n";
+
+function defaultApplication(entry: StoredAnalysis): Application {
+  return (
+    entry.application ?? {
+      status: "interested",
+      appliedAt: null,
+      lastInteractionAt: entry.createdAt,
+      notes: "",
+      tags: [],
+      contacts: [],
+      nextAction: null,
+    }
+  );
+}
+
+export function TrackingCard({ entry }: { entry: StoredAnalysis }) {
+  const app = defaultApplication(entry);
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2">
+          <ClipboardList className="size-5" />
+          {t.application.section.title}
+        </CardTitle>
+        <p className="text-muted-foreground text-xs">
+          {t.application.section.hint}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <NotesField entry={entry} initial={app.notes} />
+        <TagsField entryId={entry.id} initial={app.tags} />
+        <NextActionField entry={entry} initial={app.nextAction} />
+        <ContactsField entryId={entry.id} initial={app.contacts} />
+        {app.appliedAt && (
+          <p className="text-muted-foreground text-[11px]">
+            {t.application.appliedAtLabel}:{" "}
+            {new Date(app.appliedAt).toLocaleDateString()}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function NotesField({
+  entry,
+  initial,
+}: {
+  entry: StoredAnalysis;
+  initial: string;
+}) {
+  const [draft, setDraft] = useState(initial);
+  // Sync if external storage changes (e.g. cross-tab) and the field isn't focused.
+  if (
+    typeof document !== "undefined" &&
+    document.activeElement?.tagName !== "TEXTAREA" &&
+    initial !== draft &&
+    !document.activeElement?.closest('[data-notes-of="' + entry.id + '"]')
+  ) {
+    if (draft === "" || initial === "") {
+      // Allow external clears to flow in without fighting the user.
+    }
+  }
+
+  return (
+    <section data-notes-of={entry.id}>
+      <h3 className="text-foreground mb-1.5 text-sm font-medium">
+        {t.application.notes.title}
+      </h3>
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          if (draft !== initial) updateApplication(entry.id, { notes: draft });
+        }}
+        rows={4}
+        placeholder={t.application.notes.placeholder}
+        className="bg-card border-input focus-visible:ring-ring/30 focus-visible:border-ring w-full resize-y rounded-md border px-3 py-2 text-sm leading-relaxed outline-none focus-visible:ring-2"
+      />
+    </section>
+  );
+}
+
+function TagsField({
+  entryId,
+  initial,
+}: {
+  entryId: string;
+  initial: string[];
+}) {
+  return (
+    <section>
+      <h3 className="text-foreground mb-1.5 text-sm font-medium">
+        {t.application.tags.title}
+      </h3>
+      <TagInput
+        value={initial}
+        onChange={(next) => updateApplication(entryId, { tags: next })}
+        placeholder={t.application.tags.placeholder}
+      />
+    </section>
+  );
+}
+
+function NextActionField({
+  entry,
+  initial,
+}: {
+  entry: StoredAnalysis;
+  initial: Application["nextAction"];
+}) {
+  const [editing, setEditing] = useState(initial !== null);
+  const [draft, setDraft] = useState(initial?.description ?? "");
+  const [dueDateStr, setDueDateStr] = useState(
+    initial?.dueAt ? new Date(initial.dueAt).toISOString().slice(0, 10) : ""
+  );
+
+  const commit = () => {
+    const description = draft.trim();
+    if (!description) {
+      updateApplication(entry.id, { nextAction: null });
+      setEditing(false);
+      return;
+    }
+    const dueAt = dueDateStr ? new Date(dueDateStr).getTime() : null;
+    updateApplication(entry.id, {
+      nextAction: { description, dueAt },
+    });
+  };
+
+  const clear = () => {
+    setDraft("");
+    setDueDateStr("");
+    updateApplication(entry.id, { nextAction: null });
+    setEditing(false);
+  };
+
+  return (
+    <section>
+      <h3 className="text-foreground mb-1.5 text-sm font-medium">
+        {t.application.nextAction.title}
+      </h3>
+      {!editing ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setEditing(true)}
+        >
+          <Plus className="size-3.5" />
+          {t.application.nextAction.add}
+        </Button>
+      ) : (
+        <div className="space-y-2">
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commit}
+            placeholder={t.application.nextAction.placeholder}
+            className="bg-card border-input focus-visible:ring-ring/30 focus-visible:border-ring w-full rounded-md border px-3 py-1.5 text-sm outline-none focus-visible:ring-2"
+          />
+          <div className="flex items-center gap-2">
+            <label className="text-muted-foreground text-xs">
+              {t.application.nextAction.dueAtLabel}
+            </label>
+            <input
+              type="date"
+              value={dueDateStr}
+              onChange={(e) => setDueDateStr(e.target.value)}
+              onBlur={commit}
+              className="bg-card border-input rounded-md border px-2 py-1 text-xs"
+            />
+            {(draft || dueDateStr) && (
+              <Button variant="ghost" size="sm" onClick={clear}>
+                {t.application.nextAction.clear}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ContactsField({
+  entryId,
+  initial,
+}: {
+  entryId: string;
+  initial: Contact[];
+}) {
+  const [draft, setDraft] = useState<Contact>({
+    name: "",
+    role: "",
+    email: "",
+    linkedin: "",
+  });
+
+  const addContact = () => {
+    const name = draft.name.trim();
+    if (!name) return;
+    updateApplication(entryId, {
+      contacts: [...initial, { ...draft, name }],
+    });
+    setDraft({ name: "", role: "", email: "", linkedin: "" });
+  };
+
+  const removeContact = (index: number) => {
+    updateApplication(entryId, {
+      contacts: initial.filter((_, i) => i !== index),
+    });
+  };
+
+  return (
+    <section>
+      <h3 className="text-foreground mb-1.5 text-sm font-medium">
+        {t.application.contacts.title}
+      </h3>
+      {initial.length === 0 ? (
+        <p className="text-muted-foreground text-xs">
+          {t.application.contacts.empty}
+        </p>
+      ) : (
+        <ul className="space-y-1.5">
+          {initial.map((c, i) => (
+            <li
+              key={i}
+              className="bg-muted/30 flex items-start gap-2 rounded-md border p-2 text-xs"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-foreground font-medium">{c.name}</p>
+                {c.role && (
+                  <p className="text-muted-foreground">{c.role}</p>
+                )}
+                {(c.email || c.linkedin) && (
+                  <p className="text-muted-foreground mt-0.5 flex flex-wrap gap-2 text-[10px]">
+                    {c.email && (
+                      <a
+                        href={`mailto:${c.email}`}
+                        className="hover:text-foreground hover:underline"
+                      >
+                        {c.email}
+                      </a>
+                    )}
+                    {c.linkedin && (
+                      <a
+                        href={
+                          c.linkedin.startsWith("http")
+                            ? c.linkedin
+                            : `https://${c.linkedin}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-foreground hover:underline"
+                      >
+                        LinkedIn
+                      </a>
+                    )}
+                  </p>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => removeContact(i)}
+                aria-label="Remove contact"
+              >
+                <Trash2 className="size-3" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <input
+          type="text"
+          value={draft.name}
+          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+          placeholder={t.application.contacts.placeholder.name}
+          className="bg-card border-input rounded-md border px-2 py-1 text-xs"
+        />
+        <input
+          type="text"
+          value={draft.role}
+          onChange={(e) => setDraft({ ...draft, role: e.target.value })}
+          placeholder={t.application.contacts.placeholder.role}
+          className="bg-card border-input rounded-md border px-2 py-1 text-xs"
+        />
+        <input
+          type="email"
+          value={draft.email}
+          onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+          placeholder={t.application.contacts.placeholder.email}
+          className="bg-card border-input rounded-md border px-2 py-1 text-xs"
+        />
+        <input
+          type="url"
+          value={draft.linkedin}
+          onChange={(e) => setDraft({ ...draft, linkedin: e.target.value })}
+          placeholder={t.application.contacts.placeholder.linkedin}
+          className="bg-card border-input rounded-md border px-2 py-1 text-xs"
+        />
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-2"
+        onClick={addContact}
+        disabled={!draft.name.trim()}
+      >
+        <Plus className="size-3.5" />
+        {t.application.contacts.addLabel}
+      </Button>
+    </section>
+  );
+}
+

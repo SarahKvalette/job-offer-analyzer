@@ -116,7 +116,42 @@ export type JobAnalysis = z.infer<typeof jobAnalysisSchema>;
  * matching upgrade step in `lib/storage/migrate.ts`. Optional fields can be
  * added without bumping (e.g. verdict / company today).
  */
-export const CURRENT_STORAGE_VERSION = 1;
+export const CURRENT_STORAGE_VERSION = 2;
+
+export const applicationStatusEnum = z.enum([
+  "interested",
+  "applied",
+  "interview",
+  "offer",
+  "rejected",
+  "ignored",
+]);
+export type ApplicationStatus = z.infer<typeof applicationStatusEnum>;
+
+export const contactSchema = z.object({
+  name: z.string(),
+  role: z.string().default(""),
+  email: z.string().default(""),
+  linkedin: z.string().default(""),
+});
+export type Contact = z.infer<typeof contactSchema>;
+
+export const nextActionSchema = z.object({
+  description: z.string(),
+  dueAt: z.number().nullable().default(null),
+});
+export type NextAction = z.infer<typeof nextActionSchema>;
+
+export const applicationSchema = z.object({
+  status: applicationStatusEnum.default("interested"),
+  appliedAt: z.number().nullable().default(null),
+  lastInteractionAt: z.number(),
+  notes: z.string().default(""),
+  tags: z.array(z.string()).default([]),
+  contacts: z.array(contactSchema).default([]),
+  nextAction: nextActionSchema.nullable().default(null),
+});
+export type Application = z.infer<typeof applicationSchema>;
 
 export const questionStageEnum = z.enum(["rh", "technique", "manager", "final"]);
 export type QuestionStage = z.infer<typeof questionStageEnum>;
@@ -141,6 +176,13 @@ export const storedAnalysisSchema = z.object({
    * re-opens the analysis.
    */
   categorizedQuestions: categorizedQuestionsSchema.optional(),
+  /**
+   * CRM data added in storage v2: status / notes / tags / contacts /
+   * next action. Optional for back-compat; the migrate helper stamps a
+   * default { status: "interested", lastInteractionAt: createdAt } onto
+   * legacy entries during the v1→v2 upgrade.
+   */
+  application: applicationSchema.optional(),
 });
 
 export type StoredAnalysis = z.infer<typeof storedAnalysisSchema>;

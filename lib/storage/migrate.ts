@@ -32,12 +32,30 @@ export function migrateStoredEntry(raw: unknown): StoredAnalysis | null {
     version = 1;
   }
 
-  // Future migrations:
-  // if (version < 2) { … add userProfileSnapshot default … version = 2; }
-  // if (version < 3) { … add applicationStatus default … version = 3; }
+  // v1 → v2 : add the CRM `application` object (status / notes / tags /
+  // contacts / nextAction). Default status is "interested" and the
+  // last-interaction timestamp is the entry's createdAt.
+  let next = entry;
+  if (version < 2) {
+    if (!next.application) {
+      next = {
+        ...next,
+        application: {
+          status: "interested",
+          appliedAt: null,
+          lastInteractionAt: next.createdAt,
+          notes: "",
+          tags: [],
+          contacts: [],
+          nextAction: null,
+        },
+      };
+    }
+    version = 2;
+  }
 
   return {
-    ...entry,
+    ...next,
     schemaVersion: Math.max(version, CURRENT_STORAGE_VERSION),
   };
 }
