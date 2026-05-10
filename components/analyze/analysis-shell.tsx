@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { JobInputForm } from "./job-input-form";
 import { ResultSkeleton } from "./result-skeleton";
@@ -18,11 +18,15 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText, LayoutPanelLeft } from "lucide-react";
 import {
   getById,
+  getHistorySnapshot,
+  getHistoryServerSnapshot,
   newAnalysisId,
   saveAnalysis,
+  subscribeToHistory,
 } from "@/lib/storage/history";
 import type { JobAnalysis, StoredAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 
 type Status = "idle" | "loading" | "success";
 
@@ -32,28 +36,38 @@ type ApiError = { error: { code: string; message: string } };
 type MobileTab = "analysis" | "source";
 
 export function AnalysisShell({ initialId }: { initialId: string | null }) {
-  const [status, setStatus] = useState<Status>("idle");
-  const [current, setCurrent] = useState<StoredAnalysis | null>(null);
+  // The id we currently want to display. Starts from the URL prop, then can
+  // be overridden after a successful submission or a "new analysis" reset.
+  const [viewingId, setViewingId] = useState<string | null>(initialId);
+  const [submitting, setSubmitting] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>("analysis");
 
-  useEffect(() => {
-    if (!initialId) {
-      setStatus("idle");
-      setCurrent(null);
-      return;
-    }
-    const stored = getById(initialId);
-    if (stored) {
-      setCurrent(stored);
-      setStatus("success");
-    } else {
-      setStatus("idle");
-      setCurrent(null);
-    }
-  }, [initialId]);
+  // React 19 pattern for adjusting state when a prop changes during render —
+  // avoids the setState-in-useEffect anti-pattern.
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [trackedInitialId, setTrackedInitialId] = useState(initialId);
+  if (trackedInitialId !== initialId) {
+    setTrackedInitialId(initialId);
+    setViewingId(initialId);
+  }
+
+  // Subscribe to history mutations so the displayed entry updates if the
+  // user deletes / re-saves it from elsewhere (e.g. the history drawer).
+  useSyncExternalStore(
+    subscribeToHistory,
+    getHistorySnapshot,
+    getHistoryServerSnapshot
+  );
+
+  const current: StoredAnalysis | null = viewingId ? getById(viewingId) : null;
+  const status: Status = submitting
+    ? "loading"
+    : current
+    ? "success"
+    : "idle";
 
   const handleSubmit = useCallback(async (jobText: string) => {
-    setStatus("loading");
+    setSubmitting(true);
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
@@ -62,7 +76,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => null)) as ApiError | null;
-        throw new Error(err?.error?.message ?? "Analysis failed.");
+        throw new Error(err?.error?.message ?? t.errors.analysisFailed);
       }
       const data = (await res.json()) as ApiSuccess;
       const entry: StoredAnalysis = {
@@ -72,19 +86,18 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
         analysis: data.analysis,
       };
       saveAnalysis(entry);
-      setCurrent(entry);
-      setStatus("success");
+      setViewingId(entry.id);
       window.history.replaceState(null, "", `/?id=${entry.id}`);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Analysis failed.";
+      const msg = err instanceof Error ? err.message : t.errors.analysisFailed;
       toast.error(msg);
-      setStatus("idle");
+    } finally {
+      setSubmitting(false);
     }
   }, []);
 
   const handleReset = useCallback(() => {
-    setStatus("idle");
-    setCurrent(null);
+    setViewingId(null);
     setMobileTab("analysis");
     window.history.replaceState(null, "", "/");
   }, []);
@@ -108,7 +121,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
           </div>
           <p className="mono-hint mt-6 flex items-center gap-2">
             <span className="bg-emerald-500 size-1.5 rounded-full" />
-            Stored locally · Nothing shared · ⌘ + Enter to submit
+            {t.landing.privacyHint}
           </p>
           <FeatureRail />
         </div>
@@ -144,7 +157,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
               className="-ml-2"
             >
               <ArrowLeft className="size-4" />
-              New analysis
+              {t.form.newAnalysis}
             </Button>
             <span className="text-muted-foreground text-xs">
               {new Date(current.createdAt).toLocaleString()}
@@ -205,7 +218,7 @@ function MobileTabs({
         )}
       >
         <LayoutPanelLeft className="size-3.5" />
-        Analysis
+        {t.result.mobileTabs.analysis}
       </button>
       <button
         type="button"
@@ -220,7 +233,7 @@ function MobileTabs({
         )}
       >
         <FileText className="size-3.5" />
-        Source
+        {t.result.mobileTabs.source}
       </button>
     </div>
   );

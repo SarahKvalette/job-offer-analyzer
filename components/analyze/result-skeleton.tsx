@@ -4,15 +4,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { t } from "@/lib/i18n";
 
-const MESSAGES = [
-  "Reading the posting…",
-  "Spotting red flags…",
-  "Cross-checking real seniority…",
-  "Listing the unsaid skills…",
-  "Drafting the right questions…",
-  "Almost there — finalizing the verdict…",
-];
+const MESSAGES = t.loading.messages;
 
 export function ResultSkeleton() {
   const [idx, setIdx] = useState(0);

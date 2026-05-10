@@ -6,6 +6,7 @@ import { MessageCircleQuestion, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { questionsToText } from "@/lib/export/markdown";
+import { t } from "@/lib/i18n";
 
 export function QuestionsList({ questions }: { questions: string[] }) {
   const [copied, setCopied] = useState(false);
@@ -15,10 +16,10 @@ export function QuestionsList({ questions }: { questions: string[] }) {
     try {
       await navigator.clipboard.writeText(questionsToText(questions));
       setCopied(true);
-      toast.success("Questions copied");
+      toast.success(t.result.questions.copyToast);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      toast.error("Couldn't copy");
+      toast.error(t.result.questions.copyError);
     }
   };
 
@@ -27,27 +28,29 @@ export function QuestionsList({ questions }: { questions: string[] }) {
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="flex items-center gap-2">
           <MessageCircleQuestion className="size-5" />
-          Questions to ask
+          {t.result.questions.title}
         </CardTitle>
         {questions.length > 0 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={handleCopy}
-            aria-label="Copy questions"
+            aria-label={t.result.questions.copyAria}
           >
             {copied ? (
               <Check className="size-4" />
             ) : (
               <Copy className="size-4" />
             )}
-            {copied ? "Copied" : "Copy"}
+            {copied ? t.result.questions.copied : t.result.questions.copy}
           </Button>
         )}
       </CardHeader>
       <CardContent>
         {questions.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No questions surfaced.</p>
+          <p className="text-muted-foreground text-sm">
+            {t.result.questions.empty}
+          </p>
         ) : (
           <ol className="space-y-3">
             {questions.map((q, i) => (

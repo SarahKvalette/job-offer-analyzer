@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEvidenceHandlers } from "@/components/analyze/highlight-context";
 import type { JobAnalysis } from "@/lib/schemas/analysis";
+import { t } from "@/lib/i18n";
 
 type SkillItem = { name: string; evidence: string };
 
@@ -11,12 +12,16 @@ export function SkillsSection({ skills }: { skills: JobAnalysis["skills"] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Skills</CardTitle>
+        <CardTitle>{t.result.skills.title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
-        <SkillGroup label="Required" tone="default" items={skills.required} />
         <SkillGroup
-          label="Nice to have"
+          label={t.result.skills.required}
+          tone="default"
+          items={skills.required}
+        />
+        <SkillGroup
+          label={t.result.skills.niceToHave}
           tone="secondary"
           items={skills.niceToHave}
         />
@@ -41,7 +46,7 @@ function SkillGroup({
         {label}
       </h3>
       {items.length === 0 ? (
-        <p className="text-muted-foreground text-sm">—</p>
+        <p className="text-muted-foreground text-sm">{t.result.skills.empty}</p>
       ) : (
         <ul className="flex flex-wrap gap-2">
           {items.map((item) => (
@@ -85,7 +90,7 @@ function ImpliedGroup({
   return (
     <section>
       <h3 className="text-muted-foreground mb-2 text-xs uppercase tracking-wide">
-        Implied (not stated)
+        {t.result.skills.implied}
       </h3>
       <ul className="flex flex-wrap gap-2">
         {items.map((item) => (

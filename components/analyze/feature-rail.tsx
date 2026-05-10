@@ -4,41 +4,27 @@ import {
   Eye,
   MessageCircleQuestion,
 } from "lucide-react";
+import { t } from "@/lib/i18n";
 
 const ITEMS = [
-  {
-    icon: Gauge,
-    title: "Verdict 0–10",
-    body: "One score, one sentence. Apply, caution, or avoid.",
-  },
-  {
-    icon: AlertTriangle,
-    title: "Red flags decoded",
-    body: '"Fast-paced" → expect overtime. "Family" → boundary issues.',
-  },
-  {
-    icon: Eye,
-    title: "Real seniority",
-    body: "Junior label asking for 5 years? We catch it.",
-  },
-  {
-    icon: MessageCircleQuestion,
-    title: "Smart questions",
-    body: "3–5 specific questions to ask the recruiter — not generic.",
-  },
+  { icon: Gauge, ...t.features.verdict },
+  { icon: AlertTriangle, ...t.features.redFlags },
+  { icon: Eye, ...t.features.seniority },
+  { icon: MessageCircleQuestion, ...t.features.questions },
 ];
 
 export function FeatureRail() {
   return (
     <section
-      aria-label="What you get"
+      aria-label={t.features.sectionAriaLabel}
       className="border-border/70 mt-14 grid gap-y-6 border-t pt-10 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-border/60 lg:gap-0"
     >
       {ITEMS.map((item, i) => (
         <div
           key={item.title}
           className={
-            "lg:px-5 " + (i === 0 ? "lg:pl-0" : i === ITEMS.length - 1 ? "lg:pr-0" : "")
+            "lg:px-5 " +
+            (i === 0 ? "lg:pl-0" : i === ITEMS.length - 1 ? "lg:pr-0" : "")
           }
         >
           <item.icon

@@ -10,16 +10,17 @@ import {
   Quote,
 } from "lucide-react";
 import type { JobAnalysis } from "@/lib/schemas/analysis";
+import { t } from "@/lib/i18n";
 
 const sizeLabel: Record<
   NonNullable<JobAnalysis["company"]>["sizeEstimate"],
   { label: string; hint: string }
 > = {
-  startup: { label: "Startup", hint: "< 50 people" },
-  scaleup: { label: "Scale-up", hint: "50–500 people" },
-  midsize: { label: "Mid-size", hint: "500–5k people" },
-  enterprise: { label: "Enterprise", hint: "5k+ people" },
-  unknown: { label: "Size unknown", hint: "not stated" },
+  startup: { label: t.result.company.sizeLabels.startup, hint: t.result.company.sizeHints.startup },
+  scaleup: { label: t.result.company.sizeLabels.scaleup, hint: t.result.company.sizeHints.scaleup },
+  midsize: { label: t.result.company.sizeLabels.midsize, hint: t.result.company.sizeHints.midsize },
+  enterprise: { label: t.result.company.sizeLabels.enterprise, hint: t.result.company.sizeHints.enterprise },
+  unknown: { label: t.result.company.sizeLabels.unknown, hint: t.result.company.sizeHints.unknown },
 };
 
 export function CompanyCard({
@@ -39,7 +40,7 @@ export function CompanyCard({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Building2 className="size-5" />
-          About the company
+          {t.result.company.title}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -47,28 +48,28 @@ export function CompanyCard({
           <div className="grid gap-3 sm:grid-cols-2">
             <Stat
               icon={<Users className="size-4" />}
-              label="Size"
+              label={t.result.company.sizeLabel}
               value={size.label}
               hint={size.hint}
             />
             {company.industry && (
               <Stat
                 icon={<Layers className="size-4" />}
-                label="Industry"
+                label={t.result.company.industryLabel}
                 value={company.industry}
               />
             )}
             {company.stage && (
               <Stat
                 icon={<TrendingUp className="size-4" />}
-                label="Stage"
+                label={t.result.company.stageLabel}
                 value={company.stage}
               />
             )}
             {company.funding && (
               <Stat
                 icon={<Wallet className="size-4" />}
-                label="Funding"
+                label={t.result.company.fundingLabel}
                 value={company.funding}
               />
             )}
@@ -78,7 +79,7 @@ export function CompanyCard({
         {company.techStack.length > 0 && (
           <section>
             <h3 className="text-muted-foreground mb-2 text-xs uppercase tracking-wide">
-              Tech stack
+              {t.result.company.techStack}
             </h3>
             <ul className="flex flex-wrap gap-1.5">
               {company.techStack.map((t) => (
@@ -95,7 +96,7 @@ export function CompanyCard({
         {company.perks.length > 0 && (
           <section>
             <h3 className="text-muted-foreground mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wide">
-              <Sparkles className="size-3" /> Perks mentioned
+              <Sparkles className="size-3" /> {t.result.company.perks}
             </h3>
             <ul className="flex flex-wrap gap-1.5">
               {company.perks.map((p) => (
@@ -112,7 +113,7 @@ export function CompanyCard({
         {company.cultureSignals.length > 0 && (
           <section>
             <h3 className="text-muted-foreground mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wide">
-              <Quote className="size-3" /> Culture signals
+              <Quote className="size-3" /> {t.result.company.cultureSignals}
             </h3>
             <ul className="space-y-2">
               {company.cultureSignals.map((s) => (

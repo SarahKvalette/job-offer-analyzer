@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2, FileUp, FileText, X, CornerDownLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 
 const SAMPLE = `Senior Full-Stack Engineer @ Acme Inc.
 
@@ -49,7 +50,7 @@ export function JobInputForm({
       !file.name.toLowerCase().endsWith(".pdf") &&
       file.type !== "application/pdf"
     ) {
-      toast.error("Drop a PDF file (or paste text directly).");
+      toast.error(t.form.pdf.onlyPdfError);
       return;
     }
     setPdfBusy(true);
@@ -60,13 +61,13 @@ export function JobInputForm({
       const res = await fetch("/api/extract-pdf", { method: "POST", body: fd });
       if (!res.ok) {
         const err = (await res.json().catch(() => null)) as ApiError | null;
-        throw new Error(err?.error?.message ?? "PDF extraction failed.");
+        throw new Error(err?.error?.message ?? t.form.pdf.extractFailed);
       }
       const data = (await res.json()) as { text: string };
       setText(data.text);
-      toast.success("PDF text extracted — review and analyze.");
+      toast.success(t.form.pdf.extractedToast);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "PDF extraction failed.";
+      const msg = err instanceof Error ? err.message : t.form.pdf.extractFailed;
       toast.error(msg);
       setPdfName(null);
     } finally {
@@ -115,7 +116,7 @@ export function JobInputForm({
             if (pdfName) setPdfName(null);
           }}
           onKeyDown={handleTextareaKey}
-          placeholder="Paste a tech job posting, or drop a PDF here."
+          placeholder={t.form.placeholder}
           rows={12}
           className="text-foreground placeholder:text-muted-foreground/60 min-h-[280px] w-full resize-y bg-transparent px-6 pt-6 pb-3 text-[15px] leading-[1.65] outline-none"
         />
@@ -131,7 +132,7 @@ export function JobInputForm({
                 setText("");
               }}
               className="hover:text-foreground"
-              aria-label="Remove PDF"
+              aria-label={t.form.removePdf}
             >
               <X className="size-3" />
             </button>
@@ -140,7 +141,7 @@ export function JobInputForm({
 
         {dragOver && (
           <div className="text-[color:var(--accent-violet)] pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-[color:var(--accent-violet)]/5 text-sm font-medium backdrop-blur-sm">
-            <FileUp className="mr-2 size-5" /> Drop PDF to extract
+            <FileUp className="mr-2 size-5" /> {t.form.dropPdf}
           </div>
         )}
 
@@ -159,7 +160,7 @@ export function JobInputForm({
               ) : (
                 <FileUp className="size-3.5" />
               )}
-              PDF
+              {t.form.pdfButton}
             </Button>
             <input
               ref={fileRef}
@@ -180,7 +181,7 @@ export function JobInputForm({
               onClick={() => setText(SAMPLE)}
             >
               <Sparkles className="size-3.5" />
-              Sample
+              {t.form.sample}
             </Button>
           </div>
 
@@ -199,11 +200,11 @@ export function JobInputForm({
               {pending ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin" />
-                  Analyzing
+                  {t.form.analyzing}
                 </>
               ) : (
                 <>
-                  Analyze
+                  {t.form.analyze}
                   <kbd className="border-foreground/15 bg-foreground/5 hidden items-center gap-0.5 rounded border px-1 font-mono text-[10px] leading-none sm:inline-flex">
                     <span>⌘</span>
                     <CornerDownLeft className="size-2.5" />
@@ -233,10 +234,10 @@ function CharCount({
     ? "text-muted-foreground/60"
     : "text-muted-foreground";
   const label = tooLong
-    ? `${count.toLocaleString()} / ${MAX_CHARS.toLocaleString()}`
+    ? t.form.maxChars(count, MAX_CHARS)
     : tooShort
-    ? `${count} / ${MIN_CHARS}`
-    : count.toLocaleString();
+    ? t.form.minChars(count, MIN_CHARS)
+    : t.form.chars(count);
   return (
     <span className={cn("font-mono text-[11px] tabular-nums", tone)}>
       {label}

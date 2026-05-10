@@ -109,7 +109,17 @@ export const jobAnalysisSchema = z.object({
 
 export type JobAnalysis = z.infer<typeof jobAnalysisSchema>;
 
+/**
+ * Current storage schema version for entries written to localStorage.
+ *
+ * Bump when a new required field lands on `StoredAnalysis` and add the
+ * matching upgrade step in `lib/storage/migrate.ts`. Optional fields can be
+ * added without bumping (e.g. verdict / company today).
+ */
+export const CURRENT_STORAGE_VERSION = 1;
+
 export const storedAnalysisSchema = z.object({
+  schemaVersion: z.number().optional(),
   id: z.string(),
   createdAt: z.number(),
   jobText: z.string(),

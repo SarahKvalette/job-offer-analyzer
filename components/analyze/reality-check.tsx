@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEvidenceHandlers } from "@/components/analyze/highlight-context";
 import type { JobAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 
 const severityStyles: Record<
   JobAnalysis["realityCheck"]["redFlags"][number]["severity"],
@@ -16,24 +17,17 @@ const severityStyles: Record<
   high: "border-red-500/60 bg-red-500/10",
 };
 
-const severityLabel: Record<
-  JobAnalysis["realityCheck"]["redFlags"][number]["severity"],
-  string
-> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-};
-
-const seniorityLabel: Record<
-  JobAnalysis["realityCheck"]["seniorityRealVsAnnounced"]["real"],
-  string
-> = {
-  junior: "Junior",
-  mid: "Mid",
-  senior: "Senior",
-  staff: "Staff+",
-};
+const severityLabel = t.result.realityCheck.severity;
+const seniorityLabel = (() => {
+  // staff label has "+" appended, mapped from meta seniority labels
+  const m = t.result.meta.seniorityLabels;
+  return {
+    junior: m.junior,
+    mid: m.mid,
+    senior: m.senior,
+    staff: m.staff,
+  } as const;
+})();
 
 export function RealityCheck({
   realityCheck,
@@ -45,13 +39,15 @@ export function RealityCheck({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reality check</CardTitle>
+        <CardTitle>{t.result.realityCheck.title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <section>
           <header className="mb-3 flex items-center gap-2">
             <Gauge className="size-4" />
-            <h3 className="text-sm font-medium">Real seniority</h3>
+            <h3 className="text-sm font-medium">
+              {t.result.realityCheck.realSeniorityLabel}
+            </h3>
             <Badge variant="secondary">
               {seniorityLabel[seniorityRealVsAnnounced.real]}
             </Badge>
@@ -64,13 +60,17 @@ export function RealityCheck({
         <section>
           <header className="mb-3 flex items-center gap-2">
             <AlertTriangle className="size-4 text-amber-500" />
-            <h3 className="text-sm font-medium">Red flags</h3>
+            <h3 className="text-sm font-medium">
+              {t.result.realityCheck.redFlagsLabel}
+            </h3>
             <span className="text-muted-foreground text-xs">
               {redFlags.length}
             </span>
           </header>
           {redFlags.length === 0 ? (
-            <p className="text-muted-foreground text-sm">None spotted.</p>
+            <p className="text-muted-foreground text-sm">
+              {t.result.realityCheck.noneSpotted}
+            </p>
           ) : (
             <ul className="space-y-2">
               {redFlags.map((flag) => (
@@ -83,13 +83,17 @@ export function RealityCheck({
         <section>
           <header className="mb-3 flex items-center gap-2">
             <ShieldCheck className="size-4 text-emerald-500" />
-            <h3 className="text-sm font-medium">Green flags</h3>
+            <h3 className="text-sm font-medium">
+              {t.result.realityCheck.greenFlagsLabel}
+            </h3>
             <span className="text-muted-foreground text-xs">
               {greenFlags.length}
             </span>
           </header>
           {greenFlags.length === 0 ? (
-            <p className="text-muted-foreground text-sm">None spotted.</p>
+            <p className="text-muted-foreground text-sm">
+              {t.result.realityCheck.noneSpotted}
+            </p>
           ) : (
             <ul className="space-y-2">
               {greenFlags.map((flag) => (

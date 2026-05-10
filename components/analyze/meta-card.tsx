@@ -2,21 +2,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { JobAnalysis } from "@/lib/schemas/analysis";
 import { Building2, MapPin, BriefcaseBusiness, Banknote, Wifi } from "lucide-react";
+import { t } from "@/lib/i18n";
 
-const remoteLabel: Record<JobAnalysis["meta"]["remote"], string> = {
-  full: "Remote",
-  hybrid: "Hybrid",
-  onsite: "Onsite",
-  unknown: "Remote · unknown",
-};
-
-const seniorityLabel: Record<JobAnalysis["meta"]["seniorityAnnounced"], string> = {
-  junior: "Junior",
-  mid: "Mid",
-  senior: "Senior",
-  staff: "Staff+",
-  unknown: "Unspecified",
-};
+const remoteLabel = t.result.meta.remoteLabels;
+const seniorityLabel = t.result.meta.seniorityLabels;
 
 function formatSalary(range: JobAnalysis["meta"]["salaryRange"]): string | null {
   if (!range) return null;
@@ -41,11 +30,11 @@ export function MetaCard({ meta }: { meta: JobAnalysis["meta"] }) {
       </CardHeader>
       <CardContent>
         <dl className="text-muted-foreground grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-          <MetaRow icon={<Building2 className="size-4" />} label="Company" value={meta.company} />
-          <MetaRow icon={<MapPin className="size-4" />} label="Location" value={meta.location} />
-          <MetaRow icon={<Wifi className="size-4" />} label="Remote" value={remoteLabel[meta.remote]} />
-          <MetaRow icon={<BriefcaseBusiness className="size-4" />} label="Contract" value={meta.contractType} />
-          <MetaRow icon={<Banknote className="size-4" />} label="Salary" value={salary} />
+          <MetaRow icon={<Building2 className="size-4" />} label={t.result.meta.company} value={meta.company} />
+          <MetaRow icon={<MapPin className="size-4" />} label={t.result.meta.location} value={meta.location} />
+          <MetaRow icon={<Wifi className="size-4" />} label={t.result.meta.remote} value={remoteLabel[meta.remote]} />
+          <MetaRow icon={<BriefcaseBusiness className="size-4" />} label={t.result.meta.contract} value={meta.contractType} />
+          <MetaRow icon={<Banknote className="size-4" />} label={t.result.meta.salary} value={salary} />
         </dl>
       </CardContent>
     </Card>
