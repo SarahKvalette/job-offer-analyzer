@@ -1,9 +1,10 @@
 "use client";
 
 import {
-  storedAnalysisSchema,
+  CURRENT_STORAGE_VERSION,
   type StoredAnalysis,
 } from "@/lib/schemas/analysis";
+import { migrateStoredEntry } from "@/lib/storage/migrate";
 
 const STORAGE_KEY = "joa.history.v1";
 const MAX_ENTRIES = 10;
@@ -17,8 +18,8 @@ function readAll(): StoredAnalysis[] {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed
-      .map((item) => storedAnalysisSchema.safeParse(item))
-      .flatMap((result) => (result.success ? [result.data] : []));
+      .map((item) => migrateStoredEntry(item))
+      .filter((entry): entry is StoredAnalysis => entry !== null);
   } catch {
     return [];
   }
@@ -39,8 +40,12 @@ export function getById(id: string): StoredAnalysis | null {
 }
 
 export function saveAnalysis(entry: StoredAnalysis): void {
-  const filtered = readAll().filter((existing) => existing.id !== entry.id);
-  const next = [entry, ...filtered]
+  const stamped: StoredAnalysis = {
+    ...entry,
+    schemaVersion: entry.schemaVersion ?? CURRENT_STORAGE_VERSION,
+  };
+  const filtered = readAll().filter((existing) => existing.id !== stamped.id);
+  const next = [stamped, ...filtered]
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, MAX_ENTRIES);
   writeAll(next);
