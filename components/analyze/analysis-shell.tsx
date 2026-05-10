@@ -23,6 +23,7 @@ import {
 } from "@/lib/storage/history";
 import type { JobAnalysis, StoredAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 
 type Status = "idle" | "loading" | "success";
 
@@ -62,7 +63,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => null)) as ApiError | null;
-        throw new Error(err?.error?.message ?? "Analysis failed.");
+        throw new Error(err?.error?.message ?? t.errors.analysisFailed);
       }
       const data = (await res.json()) as ApiSuccess;
       const entry: StoredAnalysis = {
@@ -76,7 +77,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
       setStatus("success");
       window.history.replaceState(null, "", `/?id=${entry.id}`);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Analysis failed.";
+      const msg = err instanceof Error ? err.message : t.errors.analysisFailed;
       toast.error(msg);
       setStatus("idle");
     }
@@ -108,7 +109,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
           </div>
           <p className="mono-hint mt-6 flex items-center gap-2">
             <span className="bg-emerald-500 size-1.5 rounded-full" />
-            Stored locally · Nothing shared · ⌘ + Enter to submit
+            {t.landing.privacyHint}
           </p>
           <FeatureRail />
         </div>
@@ -144,7 +145,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
               className="-ml-2"
             >
               <ArrowLeft className="size-4" />
-              New analysis
+              {t.form.newAnalysis}
             </Button>
             <span className="text-muted-foreground text-xs">
               {new Date(current.createdAt).toLocaleString()}
@@ -205,7 +206,7 @@ function MobileTabs({
         )}
       >
         <LayoutPanelLeft className="size-3.5" />
-        Analysis
+        {t.result.mobileTabs.analysis}
       </button>
       <button
         type="button"
@@ -220,7 +221,7 @@ function MobileTabs({
         )}
       >
         <FileText className="size-3.5" />
-        Source
+        {t.result.mobileTabs.source}
       </button>
     </div>
   );

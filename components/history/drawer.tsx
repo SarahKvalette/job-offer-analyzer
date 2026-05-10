@@ -15,16 +15,17 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { computeFallbackVerdict, sentimentMeta } from "@/lib/analysis/verdict";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 
 function formatRelative(ts: number): string {
   const diff = Date.now() - ts;
   const min = Math.round(diff / 60_000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min}m ago`;
+  if (min < 1) return t.history.relative.justNow;
+  if (min < 60) return t.history.relative.minutes(min);
   const hours = Math.round(min / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t.history.relative.hours(hours);
   const days = Math.round(hours / 24);
-  return `${days}d ago`;
+  return t.history.relative.days(days);
 }
 
 type Group = { label: string; items: StoredAnalysis[] };
@@ -39,18 +40,19 @@ function groupItems(items: StoredAnalysis[]): Group[] {
   const startOfYesterday = startOfToday - 24 * 60 * 60 * 1000;
   const startOfWeek = startOfToday - 7 * 24 * 60 * 60 * 1000;
 
+  const G = t.history.groups;
   const groups: Record<string, StoredAnalysis[]> = {
-    Today: [],
-    Yesterday: [],
-    "This week": [],
-    Older: [],
+    [G.today]: [],
+    [G.yesterday]: [],
+    [G.thisWeek]: [],
+    [G.older]: [],
   };
 
   for (const item of items) {
-    if (item.createdAt >= startOfToday) groups.Today.push(item);
-    else if (item.createdAt >= startOfYesterday) groups.Yesterday.push(item);
-    else if (item.createdAt >= startOfWeek) groups["This week"].push(item);
-    else groups.Older.push(item);
+    if (item.createdAt >= startOfToday) groups[G.today].push(item);
+    else if (item.createdAt >= startOfYesterday) groups[G.yesterday].push(item);
+    else if (item.createdAt >= startOfWeek) groups[G.thisWeek].push(item);
+    else groups[G.older].push(item);
   }
 
   return (Object.entries(groups) as [string, StoredAnalysis[]][])
@@ -92,9 +94,9 @@ export function HistoryDrawer() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         render={
-          <Button variant="ghost" size="sm" aria-label="Open history">
+          <Button variant="ghost" size="sm" aria-label={t.header.openHistory}>
             <History className="size-4" />
-            <span className="hidden sm:inline">History</span>
+            <span className="hidden sm:inline">{t.header.history}</span>
             {count > 0 && (
               <span className="bg-primary/15 text-primary ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">
                 {count}
@@ -117,15 +119,15 @@ export function HistoryDrawer() {
             <div>
               <Dialog.Title className="flex items-center gap-2 text-base font-semibold tracking-tight">
                 <Clock className="size-4" />
-                History
+                {t.history.title}
               </Dialog.Title>
               <Dialog.Description className="text-muted-foreground mt-0.5 text-xs">
-                Last 10 analyses, kept locally in your browser.
+                {t.history.subtitle}
               </Dialog.Description>
             </div>
             <Dialog.Close
               render={
-                <Button variant="ghost" size="icon-sm" aria-label="Close">
+                <Button variant="ghost" size="icon-sm" aria-label={t.history.close}>
                   <X className="size-4" />
                 </Button>
               }
@@ -140,7 +142,7 @@ export function HistoryDrawer() {
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by title, company, location…"
+                  placeholder={t.history.searchPlaceholder}
                   className="bg-muted/40 border-input/60 focus-visible:bg-background focus-visible:ring-primary/30 w-full rounded-lg border py-2 pl-8 pr-8 text-sm outline-none transition-colors focus-visible:ring-2"
                 />
                 {query && (
@@ -148,7 +150,7 @@ export function HistoryDrawer() {
                     type="button"
                     onClick={() => setQuery("")}
                     className="text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2"
-                    aria-label="Clear search"
+                    aria-label={t.history.clearSearch}
                   >
                     <X className="size-3" />
                   </button>
@@ -159,21 +161,21 @@ export function HistoryDrawer() {
 
           <ScrollArea className="flex-1">
             {!hydrated ? (
-              <p className="text-muted-foreground px-5 py-6 text-xs">
-                Loading…
-              </p>
+              <p className="text-muted-foreground px-5 py-6 text-xs">…</p>
             ) : filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
                 <div className="bg-muted/50 ring-border mb-3 flex size-12 items-center justify-center rounded-2xl ring-1">
                   <FileText className="text-muted-foreground size-5" />
                 </div>
                 <p className="text-foreground text-sm font-medium">
-                  {items.length === 0 ? "No analyses yet" : "No matches"}
+                  {items.length === 0
+                    ? t.history.empty.title
+                    : t.history.noMatches.title}
                 </p>
                 <p className="text-muted-foreground mt-1 text-xs">
                   {items.length === 0
-                    ? "Your analyses will appear here."
-                    : "Try a different search term."}
+                    ? t.history.empty.subtitle
+                    : t.history.noMatches.subtitle}
                 </p>
               </div>
             ) : (
@@ -213,7 +215,9 @@ export function HistoryDrawer() {
                                   {entry.analysis.meta.title}
                                 </p>
                                 <p className="text-muted-foreground mt-0.5 truncate text-xs">
-                                  {entry.analysis.meta.company ?? "Unknown"} ·{" "}
+                                  {entry.analysis.meta.company ??
+                                  t.history.unknownCompany}{" "}
+                                ·{" "}
                                   {formatRelative(entry.createdAt)}
                                 </p>
                               </div>
@@ -226,7 +230,7 @@ export function HistoryDrawer() {
                                   e.preventDefault();
                                   deleteAnalysis(entry.id);
                                 }}
-                                aria-label="Delete analysis"
+                                aria-label={t.history.deleteAria}
                               >
                                 <Trash2 className="size-3" />
                               </Button>

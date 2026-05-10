@@ -16,10 +16,12 @@ import {
 } from "@/lib/export/markdown";
 import type { StoredAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 
 export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
   const verdict = computeFallbackVerdict(entry.analysis);
   const meta = sentimentMeta[verdict.sentiment];
+  const sentimentLabel = t.result.sentiment[verdict.sentiment];
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -27,10 +29,10 @@ export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
     try {
       await navigator.clipboard.writeText(md);
       setCopied(true);
-      toast.success("Analysis copied as Markdown");
+      toast.success(t.result.verdict.copyToast);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      toast.error("Couldn't copy to clipboard");
+      toast.error(t.result.verdict.copyError);
     }
   };
 
@@ -53,10 +55,10 @@ export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
                 meta.tone
               )}
             >
-              {meta.label}
+              {sentimentLabel}
             </span>
             <span className="text-muted-foreground/70 font-mono text-[10px] uppercase tracking-[0.15em]">
-              · overall verdict
+              · {t.result.verdict.eyebrow}
             </span>
           </div>
           <p className="text-foreground mt-2 text-xl font-medium leading-snug tracking-tight">
@@ -68,7 +70,7 @@ export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
             variant="outline"
             size="sm"
             onClick={handleCopy}
-            aria-label="Copy as markdown"
+            aria-label={t.result.verdict.copyAria}
           >
             {copied ? (
               <Check className="size-4" />
@@ -76,17 +78,17 @@ export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
               <Copy className="size-4" />
             )}
             <span className="hidden sm:inline">
-              {copied ? "Copied" : "Copy"}
+              {copied ? t.result.verdict.copied : t.result.verdict.copy}
             </span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleDownload}
-            aria-label="Download as markdown"
+            aria-label={t.result.verdict.exportAria}
           >
             <Download className="size-4" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">{t.result.verdict.export}</span>
           </Button>
         </div>
       </div>

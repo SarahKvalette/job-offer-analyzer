@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { HistoryDrawer } from "@/components/history/drawer";
 import { Toaster } from "@/components/ui/sonner";
+import { t } from "@/lib/i18n";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,9 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Job Offer Analyzer",
-  description:
-    "Decode any tech job posting in 10 seconds — real seniority, hidden red flags, the right questions to ask.",
+  title: t.meta.title,
+  description: t.meta.description,
 };
 
 export default function RootLayout({
@@ -50,10 +50,10 @@ export default function RootLayout({
                   </span>
                 </div>
                 <span className="text-sm font-medium tracking-tight">
-                  Job Offer Analyzer
+                  {t.header.appName}
                 </span>
                 <span className="text-muted-foreground border-border ml-1 hidden rounded-md border px-1.5 py-0.5 font-mono text-[10px] sm:block">
-                  v0.1
+                  {t.header.version}
                 </span>
               </div>
               <div className="flex items-center gap-1">

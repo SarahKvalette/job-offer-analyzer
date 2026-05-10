@@ -1,3 +1,5 @@
+import { t } from "@/lib/i18n";
+
 export function LandingHero() {
   return (
     <header className="mb-10 sm:mb-12">
@@ -6,16 +8,15 @@ export function LandingHero() {
           aria-hidden
           className="bg-[color:var(--accent-violet)] inline-block size-1.5 rounded-full"
         />
-        LLM-native posting analysis
+        {t.landing.eyebrow}
       </div>
 
       <h1 className="text-foreground text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-[3.25rem]">
-        Decode any tech job posting.
+        {t.landing.title}
       </h1>
 
       <p className="text-muted-foreground mt-6 max-w-xl text-lg leading-[1.55]">
-        Get a verdict, the real seniority, hidden red flags, and the right
-        questions to ask the recruiter — in 10 seconds.
+        {t.landing.subtitle}
       </p>
     </header>
   );

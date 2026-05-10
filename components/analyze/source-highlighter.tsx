@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useHighlight } from "@/components/analyze/highlight-context";
+import { t } from "@/lib/i18n";
 
 type Segment = { text: string; highlighted: boolean };
 
@@ -28,9 +29,9 @@ export function SourceHighlighter({ source }: { source: string }) {
   return (
     <div className="flex h-full flex-col">
       <div className="border-b px-4 py-3">
-        <h2 className="text-sm font-medium">Original posting</h2>
+        <h2 className="text-sm font-medium">{t.result.source.title}</h2>
         <p className="text-muted-foreground text-xs">
-          Hover a skill or flag to locate it here.
+          {t.result.source.subtitle}
         </p>
       </div>
       <ScrollArea className="flex-1">
