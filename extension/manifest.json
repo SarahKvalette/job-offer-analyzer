@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Job Offer Analyzer",
+  "short_name": "JOA",
+  "version": "0.1.0",
+  "description": "Analyse a tech job posting in 1 click — verdict, real seniority, hidden red flags, smart questions to ask.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "*://*.linkedin.com/*",
+    "*://*.welcometothejungle.com/*",
+    "*://*.indeed.com/*",
+    "*://*.indeed.fr/*",
+    "*://*.jobteaser.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Analyse this posting",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.linkedin.com/*",
+        "*://*.welcometothejungle.com/*",
+        "*://*.indeed.com/*",
+        "*://*.indeed.fr/*",
+        "*://*.jobteaser.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

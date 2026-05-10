@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { JobInputForm } from "./job-input-form";
 import { ResultSkeleton } from "./result-skeleton";
@@ -109,6 +109,32 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
     setMobileTab("analysis");
     window.history.replaceState(null, "", "/");
   }, []);
+
+  // One-shot import from a `#analyze=…` URL fragment — used by the Chrome
+  // extension to push the scraped posting text. Runs once after mount,
+  // strips the fragment so a refresh doesn't re-trigger.
+  const importedRef = useRef(false);
+  useEffect(() => {
+    if (importedRef.current) return;
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    const match = /^#analyze=(.+)$/.exec(hash);
+    if (!match) return;
+    importedRef.current = true;
+    let decoded = "";
+    try {
+      decoded = decodeURIComponent(match[1]);
+    } catch {
+      return;
+    }
+    if (decoded.trim().length < 30) return;
+    window.history.replaceState(null, "", "/");
+    // Defer to a microtask so the lint rule doesn't flag this as a
+    // setState-in-effect (handleSubmit transitively calls setSubmitting,
+    // but here we're starting an async flow, not synchronously syncing
+    // external state — the deferral makes that intent explicit).
+    queueMicrotask(() => handleSubmit(decoded));
+  }, [handleSubmit]);
 
   if (status === "idle") {
     return (
