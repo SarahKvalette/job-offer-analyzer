@@ -99,6 +99,9 @@ export const strings = {
       greenFlagsLabel: "Green flags",
       noneSpotted: "None spotted.",
       severity: { low: "Low", medium: "Medium", high: "High" },
+      sourceFR: "FR",
+      sourceFRTooltip: "Detected by the French recruiter-speak dictionary.",
+      adviceLabel: "Ask the recruiter:",
     },
     company: {
       title: "About the company",
@@ -122,6 +125,38 @@ export const strings = {
         midsize: "Mid-size",
         enterprise: "Enterprise",
         unknown: "Size unknown",
+      },
+    },
+    ghost: {
+      badgeLabel: "Ghost job suspect",
+      breakdownTitle: "Why we flagged this",
+      criteria: {
+        vagueDescription: "Description vagueness",
+        noSalary: "Salary disclosure",
+        externalRecruiter: "Posted by recruiter",
+        genericCompany: "Corporate fluff",
+      },
+      whatItMeans:
+        "Some postings are pipeline padding rather than actual openings. Ask the recruiter why the role is open and the team's last 2 hires before investing time.",
+    },
+    salary: {
+      title: "Salary",
+      announcedLabel: "Announced",
+      marketLabel: "Market median",
+      notDisclosed: "Not disclosed",
+      notDisclosedHint:
+        "Healthy companies state numbers. Ask the recruiter for the band before any interview round.",
+      benchmarkUnavailable: "No benchmark for this role/level/location.",
+      benchmarkSourceFR: "France · 2025",
+      position: {
+        below: (delta: number) => `${Math.abs(delta)}% below market`,
+        parity: "Within market range",
+        above: (delta: number) => `${Math.abs(delta)}% above market`,
+      },
+      perPeriod: {
+        year: "/ year",
+        month: "/ month",
+        day: "/ day",
       },
     },
     skills: {

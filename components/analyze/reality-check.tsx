@@ -7,6 +7,8 @@ import { useEvidenceHandlers } from "@/components/analyze/highlight-context";
 import type { JobAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
+import { mergeRedFlags, type MergedRedFlag } from "@/lib/detectors/merge-flags";
+import { useMemo } from "react";
 
 const severityStyles: Record<
   JobAnalysis["realityCheck"]["redFlags"][number]["severity"],
@@ -31,10 +33,27 @@ const seniorityLabel = (() => {
 
 export function RealityCheck({
   realityCheck,
+  jobText,
 }: {
   realityCheck: JobAnalysis["realityCheck"];
+  /**
+   * Original posting text. When provided, the FR red flag dictionary is
+   * scanned against it and the resulting hits are merged (deduplicated)
+   * with the LLM's `redFlags`.
+   */
+  jobText?: string;
 }) {
   const { redFlags, greenFlags, seniorityRealVsAnnounced } = realityCheck;
+
+  const mergedRedFlags = useMemo<MergedRedFlag[]>(() => {
+    if (jobText && jobText.length > 0) return mergeRedFlags(redFlags, jobText);
+    return redFlags.map((f) => ({
+      phrase: f.phrase,
+      translation: f.translation,
+      severity: f.severity,
+      source: "llm",
+    }));
+  }, [redFlags, jobText]);
 
   return (
     <Card>
@@ -64,17 +83,20 @@ export function RealityCheck({
               {t.result.realityCheck.redFlagsLabel}
             </h3>
             <span className="text-muted-foreground text-xs">
-              {redFlags.length}
+              {mergedRedFlags.length}
             </span>
           </header>
-          {redFlags.length === 0 ? (
+          {mergedRedFlags.length === 0 ? (
             <p className="text-muted-foreground text-sm">
               {t.result.realityCheck.noneSpotted}
             </p>
           ) : (
             <ul className="space-y-2">
-              {redFlags.map((flag) => (
-                <RedFlagItem key={flag.phrase + flag.translation} flag={flag} />
+              {mergedRedFlags.map((flag) => (
+                <RedFlagItem
+                  key={flag.phrase + flag.translation + flag.source}
+                  flag={flag}
+                />
               ))}
             </ul>
           )}
@@ -107,12 +129,9 @@ export function RealityCheck({
   );
 }
 
-function RedFlagItem({
-  flag,
-}: {
-  flag: JobAnalysis["realityCheck"]["redFlags"][number];
-}) {
+function RedFlagItem({ flag }: { flag: MergedRedFlag }) {
   const handlers = useEvidenceHandlers(flag.phrase);
+  const isFR = flag.source === "fr-dictionary";
   return (
     <li
       tabIndex={0}
@@ -124,11 +143,27 @@ function RedFlagItem({
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-foreground/90 text-sm italic">“{flag.phrase}”</p>
-        <Badge variant="outline" className="shrink-0">
-          {severityLabel[flag.severity]}
-        </Badge>
+        <div className="flex shrink-0 items-center gap-1">
+          {isFR && (
+            <span
+              className="border-foreground/20 text-muted-foreground rounded border px-1 font-mono text-[9px] font-semibold uppercase tracking-wider"
+              title={t.result.realityCheck.sourceFRTooltip}
+            >
+              {t.result.realityCheck.sourceFR}
+            </span>
+          )}
+          <Badge variant="outline">{severityLabel[flag.severity]}</Badge>
+        </div>
       </div>
       <p className="text-muted-foreground mt-1 text-xs">{flag.translation}</p>
+      {flag.advice && (
+        <p className="text-foreground/70 mt-1.5 text-[11px] leading-relaxed">
+          <span className="font-medium">
+            {t.result.realityCheck.adviceLabel}
+          </span>{" "}
+          {flag.advice}
+        </p>
+      )}
     </li>
   );
 }

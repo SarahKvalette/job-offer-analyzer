@@ -12,6 +12,8 @@ import { SourceHighlighter } from "./source-highlighter";
 import { HighlightProvider } from "./highlight-context";
 import { VerdictHero } from "./verdict-hero";
 import { CompanyCard } from "./company-card";
+import { SalaryCard } from "./salary-card";
+import { GhostJobBadge } from "./ghost-job-badge";
 import { LandingHero } from "./landing-hero";
 import { FeatureRail } from "./feature-rail";
 import { Button } from "@/components/ui/button";
@@ -167,7 +169,20 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
           <MobileTabs tab={mobileTab} onChange={setMobileTab} />
 
           <VerdictHero entry={current} />
-          <RealityCheck realityCheck={current.analysis.realityCheck} />
+          <div className="-mt-1 flex flex-wrap gap-2">
+            <GhostJobBadge
+              analysis={current.analysis}
+              jobText={current.jobText}
+            />
+          </div>
+          <SalaryCard
+            analysis={current.analysis}
+            jobText={current.jobText}
+          />
+          <RealityCheck
+            realityCheck={current.analysis.realityCheck}
+            jobText={current.jobText}
+          />
           {current.analysis.company && (
             <CompanyCard company={current.analysis.company} />
           )}
