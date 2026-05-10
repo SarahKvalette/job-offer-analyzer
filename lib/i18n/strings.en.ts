@@ -99,6 +99,9 @@ export const strings = {
       greenFlagsLabel: "Green flags",
       noneSpotted: "None spotted.",
       severity: { low: "Low", medium: "Medium", high: "High" },
+      sourceFR: "FR",
+      sourceFRTooltip: "Detected by the French recruiter-speak dictionary.",
+      adviceLabel: "Ask the recruiter:",
     },
     company: {
       title: "About the company",

@@ -167,7 +167,10 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
           <MobileTabs tab={mobileTab} onChange={setMobileTab} />
 
           <VerdictHero entry={current} />
-          <RealityCheck realityCheck={current.analysis.realityCheck} />
+          <RealityCheck
+            realityCheck={current.analysis.realityCheck}
+            jobText={current.jobText}
+          />
           {current.analysis.company && (
             <CompanyCard company={current.analysis.company} />
           )}
