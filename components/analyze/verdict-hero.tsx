@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, Download, Check } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   computeFallbackVerdict,
@@ -41,12 +41,11 @@ export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
     downloadMarkdown(`${slug}.md`, analysisToMarkdown(entry));
   };
 
-  const ringPct = (verdict.score / 10) * 100;
 
   return (
     <Card className={cn("overflow-hidden border-2", meta.bg)}>
       <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:gap-7">
-        <ScoreRing score={verdict.score} pct={ringPct} tone={meta.tone} />
+        <ScoreRing score={verdict.score} tone={meta.tone} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span
@@ -96,18 +95,56 @@ export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
   );
 }
 
+/**
+ * Linearly tween a value from 0 → target over `durationMs`. Uses
+ * requestAnimationFrame so the rendered number actually counts up rather
+ * than snapping. Respects `prefers-reduced-motion`.
+ */
+function useAnimatedNumber(target: number, durationMs = 800): number {
+  // Start at 0; the effect drives the rAF tween toward `target`. Honors
+  // `prefers-reduced-motion` by snapping to the final value immediately.
+  const [value, setValue] = useState(() => {
+    if (typeof window === "undefined") return target;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      return target;
+    }
+    return 0;
+  });
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(Math.round(target * eased));
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [target, durationMs]);
+
+  return value;
+}
+
 function ScoreRing({
   score,
-  pct,
   tone,
 }: {
   score: number;
-  pct: number;
   tone: string;
 }) {
+  const animated = useAnimatedNumber(score);
+  const animatedPct = (animated / 10) * 100;
   const r = 28;
   const c = 2 * Math.PI * r;
-  const offset = c - (pct / 100) * c;
+  const offset = c - (animatedPct / 100) * c;
 
   return (
     <div className="relative size-20 shrink-0">
@@ -124,7 +161,7 @@ function ScoreRing({
           cx="32"
           cy="32"
           r={r}
-          className={cn("transition-[stroke-dashoffset] duration-700", tone)}
+          className={cn("transition-[stroke-dashoffset] duration-150", tone)}
           stroke="currentColor"
           strokeWidth="6"
           strokeLinecap="round"
@@ -135,10 +172,11 @@ function ScoreRing({
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
         <span className={cn("text-2xl font-bold tabular-nums", tone)}>
-          {score}
+          {animated}
         </span>
         <span className="text-muted-foreground text-[10px]">/ 10</span>
       </div>
     </div>
   );
 }
+

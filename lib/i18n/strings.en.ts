@@ -465,6 +465,24 @@ export const strings = {
       status: "Status",
     },
   },
+  palette: {
+    triggerLabel: "Search",
+    placeholder: "Type a command or search history…",
+    empty: "No matches.",
+    groups: {
+      navigate: "Navigate",
+      actions: "Actions",
+      history: "History",
+    },
+    actions: {
+      newAnalysis: "New analysis",
+      openProfile: "Open your profile",
+      openHistory: "Open history",
+      openPipeline: "Open pipeline",
+      toggleTheme: "Toggle light / dark theme",
+    },
+    shortcut: "⌘ K",
+  },
   history: {
     title: "History",
     subtitle: "Last 10 analyses, kept locally in your browser.",

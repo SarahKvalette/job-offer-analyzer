@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { HistoryDrawer } from "@/components/history/drawer";
 import { ProfileDrawer } from "@/components/profile/drawer";
+import { CommandPalette } from "@/components/palette/command-palette";
 import { Toaster } from "@/components/ui/sonner";
 import { t } from "@/lib/i18n";
 import Link from "next/link";
@@ -69,6 +70,7 @@ export default function RootLayout({
                     {t.pipeline.triggerLabel}
                   </span>
                 </Link>
+                <CommandPalette />
                 <ProfileDrawer />
                 <Suspense fallback={null}>
                   <HistoryDrawer />
