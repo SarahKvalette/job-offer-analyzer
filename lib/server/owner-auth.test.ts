@@ -10,13 +10,12 @@ beforeEach(() => {
 
 afterEach(() => {
   delete process.env.JOA_OWNER_SECRET;
-  delete process.env.JOA_OWNER_EMAIL;
 });
 
 async function loadAuth() {
   // next/headers's `cookies()` reads from an AsyncLocalStorage that only
-  // works inside the Next request context. We stub it for the pure
-  // helpers we exercise here.
+  // works inside the Next request context. We stub it for the helpers we
+  // care about — verifyPassword + buildOwnerCookieValue are pure.
   vi.doMock("next/headers", () => ({
     cookies: async () => ({
       get: () => undefined,
@@ -27,40 +26,39 @@ async function loadAuth() {
   return await import("./owner-auth");
 }
 
-describe("isEmailAllowed", () => {
-  it("rejects every email when JOA_OWNER_EMAIL is unset", async () => {
-    delete process.env.JOA_OWNER_EMAIL;
+describe("verifyPassword", () => {
+  it("accepts the exact secret", async () => {
     const auth = await loadAuth();
-    expect(auth.isEmailAllowed("sarah@example.com")).toBe(false);
+    expect(auth.verifyPassword(TEST_SECRET)).toBe(true);
   });
 
-  it("accepts the configured email", async () => {
-    process.env.JOA_OWNER_EMAIL = "sarah@example.com";
+  it("rejects a wrong password", async () => {
     const auth = await loadAuth();
-    expect(auth.isEmailAllowed("sarah@example.com")).toBe(true);
+    expect(auth.verifyPassword("nope")).toBe(false);
   });
 
-  it("is case-insensitive and tolerates surrounding whitespace", async () => {
-    process.env.JOA_OWNER_EMAIL = "  Sarah@Example.COM ";
+  it("rejects an empty submission", async () => {
     const auth = await loadAuth();
-    expect(auth.isEmailAllowed("sarah@example.com")).toBe(true);
-    expect(auth.isEmailAllowed("SARAH@example.com")).toBe(true);
+    expect(auth.verifyPassword("")).toBe(false);
   });
 
-  it("supports a comma-separated allowlist", async () => {
-    process.env.JOA_OWNER_EMAIL = "a@example.com, b@example.com";
+  it("rejects when JOA_OWNER_SECRET is missing", async () => {
+    delete process.env.JOA_OWNER_SECRET;
     const auth = await loadAuth();
-    expect(auth.isEmailAllowed("a@example.com")).toBe(true);
-    expect(auth.isEmailAllowed("b@example.com")).toBe(true);
-    expect(auth.isEmailAllowed("c@example.com")).toBe(false);
+    expect(auth.verifyPassword("anything")).toBe(false);
   });
 
-  it("rejects null / empty submissions", async () => {
-    process.env.JOA_OWNER_EMAIL = "sarah@example.com";
+  it("rejects same-prefix attempts (no timing-attack surface)", async () => {
     const auth = await loadAuth();
-    expect(auth.isEmailAllowed(null)).toBe(false);
-    expect(auth.isEmailAllowed("")).toBe(false);
-    expect(auth.isEmailAllowed(undefined)).toBe(false);
+    expect(auth.verifyPassword(TEST_SECRET.slice(0, -1))).toBe(false);
+    expect(auth.verifyPassword(TEST_SECRET + "x")).toBe(false);
+  });
+
+  it("tolerates surrounding whitespace on both sides", async () => {
+    process.env.JOA_OWNER_SECRET = `  ${TEST_SECRET}  `;
+    const auth = await loadAuth();
+    expect(auth.verifyPassword(TEST_SECRET)).toBe(true);
+    expect(auth.verifyPassword(`  ${TEST_SECRET}  `)).toBe(true);
   });
 });
 

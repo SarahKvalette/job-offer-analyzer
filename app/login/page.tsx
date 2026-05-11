@@ -3,28 +3,7 @@ import { t } from "@/lib/i18n";
 
 export const metadata = { title: "Sign in · Job Offer Analyzer" };
 
-type SearchParams = Promise<{
-  next?: string | string[];
-  google_error?: string | string[];
-}>;
-
-function single(v: string | string[] | undefined): string | null {
-  if (!v) return null;
-  return Array.isArray(v) ? v[0] ?? null : v;
-}
-
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const params = await searchParams;
-  const next = single(params.next) ?? "/";
-  const error = single(params.google_error);
-
-  // Only allow same-origin redirects.
-  const safeNext = next.startsWith("/") ? next : "/";
-
+export default function LoginPage() {
   return (
     <div className="mx-auto max-w-md pt-8">
       <header className="mb-8">
@@ -35,7 +14,7 @@ export default async function LoginPage({
           {t.auth.pageSubtitle}
         </p>
       </header>
-      <LoginForm nextPath={safeNext} initialError={error} />
+      <LoginForm />
     </div>
   );
 }

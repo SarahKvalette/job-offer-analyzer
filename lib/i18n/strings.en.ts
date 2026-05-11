@@ -654,14 +654,14 @@ export const strings = {
   auth: {
     pageTitle: "Owner sign-in",
     pageSubtitle:
-      "Only the owner can use the cloud features (Gmail / Calendar / digest / discover feed). Public features stay open.",
-    submit: "Continue with Google",
-    submitting: "Redirecting to Google…",
+      "Only the owner can use the cloud features (Gmail / Calendar / digest). Public features stay open.",
+    passwordLabel: "Owner password",
+    submit: "Sign in",
+    submitting: "Signing in…",
     success: "Signed in.",
+    incorrect: "Incorrect password.",
     failed: "Couldn't sign in.",
     logout: "Sign out",
-    allowlistHint:
-      "Only Google accounts on the owner allowlist (JOA_OWNER_EMAIL) can sign in. Everyone else will be bounced back here.",
   },
 } as const;
 
