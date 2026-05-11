@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Moon,
   Plus,
+  Radar,
   Search,
   Sun,
   User,
@@ -112,6 +113,13 @@ export function CommandPalette() {
         label: t.palette.actions.openStats,
         icon: <ArrowRight className="size-4 opacity-50" />,
         onRun: () => navigateTo("/stats"),
+      },
+      {
+        id: "open-discover",
+        group: "navigate",
+        label: t.palette.actions.openDiscover,
+        icon: <Radar className="size-4" />,
+        onRun: () => navigateTo("/discover"),
       },
       {
         id: "open-profile",

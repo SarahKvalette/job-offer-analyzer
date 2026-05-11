@@ -56,4 +56,9 @@ export const KV_KEYS = {
   weeklyStats: (yearWeek: string) => `stats:weekly:${yearWeek}`,
   digestLastSent: "digest:lastSentAt",
   cronSecret: "system:cronSecret",
+  discoverSearches: "discover:searches",
+  discoverOffers: "discover:offers",
+  discoverLastRunAt: "discover:lastRunAt",
+  discoverSinceDigestCount: "discover:sinceDigestCount",
+  franceTravailToken: "ft:token",
 } as const;

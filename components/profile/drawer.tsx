@@ -21,6 +21,7 @@ import { WeightSlider } from "./weight-slider";
 import { CvSection } from "./cv-section";
 import { GoogleSection } from "./google-section";
 import { DigestSection } from "./digest-section";
+import { SearchesSection } from "./searches-section";
 
 const NO_OP = () => () => {};
 
@@ -233,6 +234,9 @@ export function ProfileDrawer() {
 
                 {/* Digest email */}
                 <DigestSection />
+
+                {/* Saved searches (daily polling → /discover) */}
+                <SearchesSection />
 
                 {/* CV */}
                 <CvSection />

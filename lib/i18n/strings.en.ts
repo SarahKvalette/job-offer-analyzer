@@ -442,6 +442,57 @@ export const strings = {
     timeline: "Last 8 weeks",
     topRedFlags: "Most common red flags",
   },
+  discover: {
+    triggerLabel: "Discover",
+    pageTitle: "Today's matches",
+    pageSubtitle:
+      "Fresh offers polled daily from France Travail and Remotive, filtered against your saved searches.",
+    emptyTitle: "Nothing today",
+    emptyBody:
+      "Either no offers landed since the last poll, or your saved searches need broader keywords.",
+    noSearches: {
+      title: "No saved searches yet",
+      body: "Define a saved search in your profile drawer — JOA will poll daily and surface what matches.",
+      cta: "Open profile",
+    },
+    sectionTitle: "Saved searches",
+    sectionHint:
+      "Owner-only. JOA polls daily and emails you new matches in the weekly digest.",
+    addSearch: "Add search",
+    newSearchLabel: "New saved search",
+    empty: "No saved searches yet.",
+    kvMissing: "Vercel KV isn't configured yet — provision it first.",
+    ftUnconfigured:
+      "France Travail credentials missing (FT_CLIENT_ID / FT_CLIENT_SECRET). Remotive will still run.",
+    labelAria: "Saved search label",
+    deleteAria: "Delete saved search",
+    keywordsLabel: "Keywords (any match)",
+    keywordsPlaceholder: "react, senior, typescript…",
+    excludeLabel: "Exclude (none of these)",
+    excludePlaceholder: "lead, manager…",
+    remoteLabel: "Remote",
+    minSalaryLabel: "Min salary (€/year)",
+    locationsLabel: "Locations",
+    locationsPlaceholder: "Paris, Lyon…",
+    locationsHint: "Ignored for remote roles.",
+    sourcesLabel: "Sources",
+    viewMatches: "See matches in /discover",
+    remote: {
+      any: "Any",
+      only: "Remote only",
+      no: "On-site only",
+    },
+    offerCard: {
+      newToday: "New",
+      remote: "Remote",
+      viaSource: "via",
+      openOriginal: "Open offer",
+      analyse: "Analyse",
+    },
+    lastRun: (when: string) => `Last poll · ${when}`,
+    newSinceDigest: (n: number) =>
+      `${n} new ${n === 1 ? "offer" : "offers"} since your last digest`,
+  },
   digest: {
     sectionTitle: "Weekly digest email",
     sectionHint:
@@ -551,6 +602,7 @@ export const strings = {
       openHistory: "Open history",
       openPipeline: "Open pipeline",
       openStats: "Open stats",
+      openDiscover: "Open discover feed",
       toggleTheme: "Toggle light / dark theme",
     },
     shortcut: "⌘ K",
