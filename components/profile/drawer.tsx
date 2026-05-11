@@ -139,7 +139,7 @@ export function ProfileDrawer() {
               </div>
             </header>
 
-            <ScrollArea className="flex-1">
+            <ScrollArea className="min-h-0 flex-1">
               <div className="space-y-7 px-5 py-5">
                 {/* Stack */}
                 <Section

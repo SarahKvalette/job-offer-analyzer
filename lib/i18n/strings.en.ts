@@ -86,6 +86,18 @@ export const strings = {
     ],
   },
   result: {
+    sections: {
+      realityCheck: "Reality check",
+      context: "Context",
+      nextSteps: "Next steps",
+      questionsTitle: "Questions to ask the recruiter",
+      questionsHint: "Smart questions, optionally grouped by interview stage.",
+      generationTitle: "Tailored content",
+      generationHint:
+        "Cover letter, LinkedIn message, application email, interview prep, ATS keywords.",
+      trackingTitle: "Application tracking",
+      trackingHint: "Status, notes, tags, contacts, next action.",
+    },
     verdict: {
       eyebrow: "overall verdict",
       copy: "Copy",

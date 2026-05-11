@@ -16,6 +16,7 @@ export type TechCategory =
   | "mobile"
   | "data"
   | "devops"
+  | "design"
   | "tools";
 
 export interface TechEntry {
@@ -112,20 +113,64 @@ export const TECH_STACKS: ReadonlyArray<TechEntry> = [
   { id: "devops:gitlabci", label: "GitLab CI", category: "devops" },
   { id: "devops:jenkins", label: "Jenkins", category: "devops" },
 
+  // Design (product / UX / UI)
+  { id: "design:figma", label: "Figma", category: "design" },
+  { id: "design:figjam", label: "FigJam", category: "design" },
+  { id: "design:sketch", label: "Sketch", category: "design" },
+  { id: "design:adobexd", label: "Adobe XD", category: "design", aliases: ["xd"] },
+  { id: "design:framer", label: "Framer", category: "design" },
+  { id: "design:penpot", label: "Penpot", category: "design" },
+  { id: "design:protopie", label: "ProtoPie", category: "design" },
+  { id: "design:principle", label: "Principle", category: "design" },
+  { id: "design:origami", label: "Origami Studio", category: "design" },
+  { id: "design:photoshop", label: "Photoshop", category: "design", aliases: ["ps"] },
+  { id: "design:illustrator", label: "Illustrator", category: "design", aliases: ["ai"] },
+  { id: "design:aftereffects", label: "After Effects", category: "design", aliases: ["ae"] },
+  { id: "design:lottie", label: "Lottie", category: "design" },
+  { id: "design:rive", label: "Rive", category: "design" },
+  { id: "design:spline", label: "Spline", category: "design" },
+  { id: "design:blender", label: "Blender", category: "design" },
+  { id: "design:cinema4d", label: "Cinema 4D", category: "design", aliases: ["c4d"] },
+  { id: "design:miro", label: "Miro", category: "design" },
+  { id: "design:whimsical", label: "Whimsical", category: "design" },
+  { id: "design:balsamiq", label: "Balsamiq", category: "design" },
+  { id: "design:zeplin", label: "Zeplin", category: "design" },
+  { id: "design:zeroheight", label: "Zeroheight", category: "design" },
+  { id: "design:maze", label: "Maze", category: "design" },
+  { id: "design:dovetail", label: "Dovetail", category: "design" },
+  { id: "design:usertesting", label: "UserTesting", category: "design" },
+  { id: "design:hotjar", label: "Hotjar", category: "design" },
+  { id: "design:fullstory", label: "FullStory", category: "design" },
+  { id: "design:designsystems", label: "Design systems", category: "design", aliases: ["ds", "design system"] },
+  { id: "design:wcag", label: "WCAG / a11y", category: "design", aliases: ["accessibility", "a11y"] },
+  { id: "design:userresearch", label: "User research", category: "design", aliases: ["ux research", "ur"] },
+  { id: "design:prototyping", label: "Prototyping", category: "design" },
+  { id: "design:wireframing", label: "Wireframing", category: "design" },
+
   // Tools
   { id: "tools:git", label: "Git", category: "tools" },
-  { id: "tools:figma", label: "Figma", category: "tools" },
   { id: "tools:linear", label: "Linear", category: "tools" },
   { id: "tools:notion", label: "Notion", category: "tools" },
   { id: "tools:slack", label: "Slack", category: "tools" },
   { id: "tools:datadog", label: "Datadog", category: "tools" },
   { id: "tools:sentry", label: "Sentry", category: "tools" },
   { id: "tools:posthog", label: "PostHog", category: "tools" },
+  { id: "tools:amplitude", label: "Amplitude", category: "tools" },
+  { id: "tools:mixpanel", label: "Mixpanel", category: "tools" },
   { id: "tools:storybook", label: "Storybook", category: "tools" },
   { id: "tools:playwright", label: "Playwright", category: "tools" },
   { id: "tools:vitest", label: "Vitest", category: "tools" },
   { id: "tools:jest", label: "Jest", category: "tools" },
 ];
+
+/**
+ * Stable redirects from legacy ids to current ones. When the picker
+ * displays a profile that contains a legacy id, we resolve to the new
+ * entry transparently so the user's stored stack survives a rename.
+ */
+const ID_ALIASES: Record<string, string> = {
+  "tools:figma": "design:figma",
+};
 
 export const CATEGORY_LABELS: Record<TechCategory, string> = {
   language: "Languages",
@@ -134,6 +179,7 @@ export const CATEGORY_LABELS: Record<TechCategory, string> = {
   mobile: "Mobile",
   data: "Data & DB",
   devops: "DevOps & Cloud",
+  design: "Design & UX",
   tools: "Tools",
 };
 
@@ -144,6 +190,7 @@ const CATEGORY_ORDER: TechCategory[] = [
   "mobile",
   "data",
   "devops",
+  "design",
   "tools",
 ];
 
@@ -181,6 +228,7 @@ export function searchStacks(query: string): Array<{
     mobile: [],
     data: [],
     devops: [],
+    design: [],
     tools: [],
   };
   for (const entry of filtered) grouped[entry.category].push(entry);
@@ -194,7 +242,8 @@ export function searchStacks(query: string): Array<{
 
 /** Look up an entry by id (returns null for ids not in the dataset). */
 export function findStackById(id: string): TechEntry | null {
-  return TECH_STACKS.find((e) => e.id === id) ?? null;
+  const resolved = ID_ALIASES[id] ?? id;
+  return TECH_STACKS.find((e) => e.id === resolved) ?? null;
 }
 
 /**
@@ -205,4 +254,12 @@ export function findStackById(id: string): TechEntry | null {
 export function labelFor(id: string): string {
   if (id.startsWith("custom:")) return id.slice("custom:".length);
   return findStackById(id)?.label ?? id;
+}
+
+/**
+ * Resolve a stored stack id through the alias map. Useful for normalising
+ * a profile's stack array on load.
+ */
+export function resolveStackId(id: string): string {
+  return ID_ALIASES[id] ?? id;
 }

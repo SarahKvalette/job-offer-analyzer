@@ -31,6 +31,9 @@ import {
 import { StatusPill } from "@/components/application/status-pill";
 import { TrackingCard } from "@/components/application/tracking-card";
 import { GenerationCard } from "./generation-card";
+import { QuickScanStrip } from "./quick-scan-strip";
+import { SectionEyebrow } from "./section-eyebrow";
+import { CollapsibleSection } from "./collapsible-section";
 import type { ApplicationStatus } from "@/lib/schemas/analysis";
 import type { JobAnalysis, StoredAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
@@ -216,29 +219,51 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
           <MobileTabs tab={mobileTab} onChange={setMobileTab} />
 
           <VerdictHero entry={current} />
+          <QuickScanStrip entry={current} />
           <div className="-mt-1 flex flex-wrap gap-2">
             <GhostJobBadge
               analysis={current.analysis}
               jobText={current.jobText}
             />
           </div>
+
+          <SectionEyebrow label={t.result.sections.realityCheck} />
+          <RealityCheck
+            realityCheck={current.analysis.realityCheck}
+            jobText={current.jobText}
+          />
           <FitScoreCard analysis={current.analysis} />
           <SalaryCard
             analysis={current.analysis}
             jobText={current.jobText}
           />
-          <RealityCheck
-            realityCheck={current.analysis.realityCheck}
-            jobText={current.jobText}
-          />
+
+          <SectionEyebrow label={t.result.sections.context} />
           {current.analysis.company && (
             <CompanyCard company={current.analysis.company} />
           )}
           <SkillsSection skills={current.analysis.skills} />
           <MetaCard meta={current.analysis.meta} />
-          <QuestionsList entry={current} />
-          <GenerationCard entry={current} />
-          <TrackingCard entry={current} />
+
+          <SectionEyebrow label={t.result.sections.nextSteps} />
+          <CollapsibleSection
+            title={t.result.sections.questionsTitle}
+            hint={t.result.sections.questionsHint}
+          >
+            <QuestionsList entry={current} />
+          </CollapsibleSection>
+          <CollapsibleSection
+            title={t.result.sections.generationTitle}
+            hint={t.result.sections.generationHint}
+          >
+            <GenerationCard entry={current} />
+          </CollapsibleSection>
+          <CollapsibleSection
+            title={t.result.sections.trackingTitle}
+            hint={t.result.sections.trackingHint}
+          >
+            <TrackingCard entry={current} />
+          </CollapsibleSection>
         </div>
 
         {/* RIGHT — source */}
