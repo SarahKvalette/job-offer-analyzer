@@ -60,7 +60,7 @@ export function GoogleSection() {
 
   const connect = () => {
     setBusy(true);
-    window.location.href = "/api/google/connect";
+    window.location.href = "/api/auth/google?next=/";
   };
 
   const disconnect = async () => {

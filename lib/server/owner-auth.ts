@@ -3,20 +3,17 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
 /**
- * Single-owner auth gate.
+ * Single-owner auth gate, backed by Google sign-in.
  *
- * The user sets `JOA_OWNER_SECRET` once in env. The /login route checks
- * the submitted password against that secret and, on success, sets a
- * httpOnly cookie containing an HMAC-signed token. Any protected route
- * verifies the cookie via `assertOwner()` (or the lighter
- * `isOwnerSession()`).
+ * The user clicks "Sign in with Google" on /login. The OAuth callback
+ * checks the returned email against `JOA_OWNER_EMAIL` (comma-separated
+ * allowlist) and, on success, sets a httpOnly cookie containing an
+ * HMAC-signed token. Any protected route verifies the cookie via
+ * `isOwnerSession()` / `ownerCheck()`.
  *
- * Why HMAC over storing the secret in the cookie:
- *   - We can rotate the secret without invalidating old cookies… or
- *     decide we want to (just bump the secret to invalidate everyone).
- *   - The cookie value alone reveals nothing useful — even if leaked
- *     out of a browser, an attacker still needs JOA_OWNER_SECRET to
- *     forge a new token.
+ * `JOA_OWNER_SECRET` is now used only as the HMAC signing key for the
+ * cookie — never typed by the user anywhere. Rotate it to invalidate
+ * all existing sessions.
  */
 
 const COOKIE_NAME = "joa_owner";
@@ -63,21 +60,24 @@ function verifyToken(token: string | undefined | null): boolean {
 export const OWNER_COOKIE_NAME = COOKIE_NAME;
 
 /**
- * Compare a submitted password to JOA_OWNER_SECRET in constant time.
+ * Allowed Google account emails — comma-separated in `JOA_OWNER_EMAIL`.
+ * Comparison is case-insensitive and ignores surrounding whitespace, so
+ * "Sarah@Gmail.COM " in env still matches "sarah@gmail.com" from Google.
  */
-export function verifyPassword(submitted: string): boolean {
-  if (typeof submitted !== "string" || submitted.length === 0) return false;
-  let secret: string;
-  try {
-    secret = getSecret();
-  } catch {
-    return false;
-  }
-  if (submitted.length !== secret.length) return false;
-  return timingSafeEqual(
-    Buffer.from(submitted),
-    Buffer.from(secret)
-  );
+export function getAllowedEmails(): string[] {
+  const raw = process.env.JOA_OWNER_EMAIL;
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function isEmailAllowed(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const allowed = getAllowedEmails();
+  if (allowed.length === 0) return false;
+  return allowed.includes(email.trim().toLowerCase());
 }
 
 export function buildOwnerCookieValue(): string {
