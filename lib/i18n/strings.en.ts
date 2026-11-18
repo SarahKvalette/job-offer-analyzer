@@ -22,11 +22,27 @@ export const strings = {
     openHistory: "Open history",
   },
   landing: {
-    eyebrow: "LLM-native posting analysis",
-    title: "Decode any tech job posting.",
+    eyebrow: "Analyse d'annonces par IA",
+    title: "Décryptez n'importe quelle annonce d'emploi.",
     subtitle:
-      "Get a verdict, the real seniority, hidden red flags, and the right questions to ask the recruiter — in 10 seconds.",
-    privacyHint: "Stored locally · Nothing shared · ⌘ + Enter to submit",
+      "Un verdict, la vraie séniorité, les signaux d'alerte cachés et les bonnes questions à poser au recruteur — en 10 secondes.",
+    // Honest privacy line (see Phase 6): the analysis transits the server, but
+    // nothing is stored there; your tracking stays on your device.
+    privacyHint:
+      "Suivi gardé sur votre appareil · Annonce analysée puis non conservée · ⌘ + Entrée pour lancer",
+    demo: {
+      heading: "Pas d'annonce sous la main ?",
+      subheading:
+        "Essayez avec une annonce d'exemple — gratuit, instantané, sans rien coller.",
+      ownLabel: "Ou analysez votre propre annonce ci-dessous",
+      tryAria: (label: string) => `Essayer l'exemple : ${label}`,
+      badge: "Exemple",
+      bannerTitle: "Ceci est une annonce d'exemple",
+      bannerBody:
+        "Analyse pré-calculée, à titre de démonstration. Collez votre propre annonce pour une analyse personnalisée.",
+      bannerCta: "Analyser ma propre annonce",
+      questionsTitle: "Questions à poser au recruteur",
+    },
   },
   features: {
     verdict: {

@@ -18,7 +18,19 @@ import { GhostJobBadge } from "./ghost-job-badge";
 import { LandingHero } from "./landing-hero";
 import { FeatureRail } from "./feature-rail";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText, LayoutPanelLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  FileText,
+  FlaskConical,
+  LayoutPanelLeft,
+} from "lucide-react";
+import {
+  DEMO_ANALYSES_FR,
+  getDemoById,
+  isDemoId,
+  type DemoAnalysis,
+} from "@/lib/data/demo-analyses-fr";
 import {
   getById,
   getHistorySnapshot,
@@ -52,6 +64,9 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
   const [viewingId, setViewingId] = useState<string | null>(initialId);
   const [submitting, setSubmitting] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>("analysis");
+  // A pre-computed example being previewed read-only. Never written to
+  // history and never saved — clicking an example spends no API quota.
+  const [demoEntry, setDemoEntry] = useState<StoredAnalysis | null>(null);
 
   // React 19 pattern for adjusting state when a prop changes during render —
   // avoids the setState-in-useEffect anti-pattern.
@@ -60,6 +75,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
   if (trackedInitialId !== initialId) {
     setTrackedInitialId(initialId);
     setViewingId(initialId);
+    if (initialId) setDemoEntry(null);
   }
 
   // Subscribe to history mutations so the displayed entry updates if the
@@ -70,14 +86,31 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
     getHistoryServerSnapshot
   );
 
-  const current: StoredAnalysis | null = viewingId ? getById(viewingId) : null;
+  const current: StoredAnalysis | null =
+    demoEntry ?? (viewingId ? getById(viewingId) : null);
   const status: Status = submitting
     ? "loading"
     : current
     ? "success"
     : "idle";
 
+  const openDemo = useCallback((id: string) => {
+    const demo = getDemoById(id);
+    if (!demo) return;
+    setDemoEntry({
+      id: demo.id,
+      createdAt: Date.now(),
+      jobText: demo.jobText,
+      analysis: demo.analysis,
+    });
+    setViewingId(null);
+    setMobileTab("analysis");
+    window.history.replaceState(null, "", `/?demo=${demo.id}`);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0 });
+  }, []);
+
   const handleSubmit = useCallback(async (jobText: string) => {
+    setDemoEntry(null);
     setSubmitting(true);
     try {
       const res = await fetch("/api/analyze", {
@@ -109,9 +142,24 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
 
   const handleReset = useCallback(() => {
     setViewingId(null);
+    setDemoEntry(null);
     setMobileTab("analysis");
     window.history.replaceState(null, "", "/");
   }, []);
+
+  // Restore / deep-link an example from a `?demo=<id>` URL on first mount.
+  const demoImportedRef = useRef(false);
+  useEffect(() => {
+    if (demoImportedRef.current) return;
+    if (typeof window === "undefined") return;
+    if (initialId) return;
+    const demoParam = new URLSearchParams(window.location.search).get("demo");
+    if (!demoParam) return;
+    demoImportedRef.current = true;
+    // Defer so this reads as "start a flow", not a synchronous state sync
+    // (mirrors the `#analyze=` import effect below).
+    queueMicrotask(() => openDemo(demoParam));
+  }, [initialId, openDemo]);
 
   // One-shot import from a `#analyze=…` URL fragment — used by the Chrome
   // extension to push the scraped posting text. Runs once after mount,
@@ -148,6 +196,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
         />
         <div className="mx-auto max-w-3xl pt-2 sm:pt-6">
           <LandingHero />
+          <DemoExamples onOpen={openDemo} />
           <div className="relative">
             {/* Subtle violet glow under the form — magnetic feel */}
             <div
@@ -175,6 +224,19 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
   }
 
   if (!current) return null;
+
+  // Read-only example view — no status/tracking/generation (those mutate
+  // history or call the API), with a clear "this is an example" banner.
+  if (isDemoId(current.id)) {
+    return (
+      <DemoAnalysisView
+        entry={current}
+        mobileTab={mobileTab}
+        onTab={setMobileTab}
+        onExit={handleReset}
+      />
+    );
+  }
 
   return (
     <HighlightProvider>
@@ -326,5 +388,157 @@ function MobileTabs({
         {t.result.mobileTabs.source}
       </button>
     </div>
+  );
+}
+
+// ── Public examples ───────────────────────────────────────────────────
+
+function DemoExamples({ onOpen }: { onOpen: (id: string) => void }) {
+  return (
+    <section aria-label={t.landing.demo.heading} className="mb-8">
+      <div className="mb-1 flex items-center gap-2">
+        <FlaskConical className="size-4 text-[color:var(--accent-violet)]" />
+        <p className="text-foreground text-sm font-medium">
+          {t.landing.demo.heading}
+        </p>
+      </div>
+      <p className="text-muted-foreground mb-3 text-sm">
+        {t.landing.demo.subheading}
+      </p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {DEMO_ANALYSES_FR.map((demo: DemoAnalysis) => (
+          <button
+            key={demo.id}
+            type="button"
+            onClick={() => onOpen(demo.id)}
+            aria-label={t.landing.demo.tryAria(demo.label)}
+            className="group bg-card hover:border-[color:var(--accent-violet)]/50 flex min-h-[44px] flex-col items-start gap-0.5 rounded-xl border px-3.5 py-3 text-left transition-colors"
+          >
+            <span className="text-foreground text-sm font-medium">
+              {demo.label}
+            </span>
+            <span className="text-muted-foreground text-xs">{demo.teaser}</span>
+          </button>
+        ))}
+      </div>
+      <p className="mono-hint mt-4">{t.landing.demo.ownLabel}</p>
+    </section>
+  );
+}
+
+function DemoAnalysisView({
+  entry,
+  mobileTab,
+  onTab,
+  onExit,
+}: {
+  entry: StoredAnalysis;
+  mobileTab: MobileTab;
+  onTab: (tab: MobileTab) => void;
+  onExit: () => void;
+}) {
+  return (
+    <HighlightProvider>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        {/* LEFT — analysis */}
+        <div
+          className={cn(
+            "flex flex-col gap-4",
+            mobileTab === "source" && "hidden lg:flex"
+          )}
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onExit}
+            className="-ml-2 self-start"
+          >
+            <ArrowLeft className="size-4" />
+            {t.landing.demo.bannerCta}
+          </Button>
+
+          <div className="rounded-xl border border-[color:var(--accent-violet)]/40 bg-[color:var(--accent-violet)]/5 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--accent-violet)]/15 px-2 py-0.5 text-[11px] font-semibold text-[color:var(--accent-violet)]">
+                <FlaskConical className="size-3" />
+                {t.landing.demo.badge}
+              </span>
+              <p className="text-foreground text-sm font-medium">
+                {t.landing.demo.bannerTitle}
+              </p>
+            </div>
+            <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+              {t.landing.demo.bannerBody}
+            </p>
+          </div>
+
+          <MobileTabs tab={mobileTab} onChange={onTab} />
+
+          <VerdictHero entry={entry} />
+          <QuickScanStrip entry={entry} />
+          <div className="-mt-1 flex flex-wrap gap-2">
+            <GhostJobBadge analysis={entry.analysis} jobText={entry.jobText} />
+          </div>
+
+          <SectionEyebrow label={t.result.sections.realityCheck} />
+          <RealityCheck
+            realityCheck={entry.analysis.realityCheck}
+            jobText={entry.jobText}
+          />
+          <FitScoreCard analysis={entry.analysis} />
+          <SalaryCard analysis={entry.analysis} jobText={entry.jobText} />
+
+          <SectionEyebrow label={t.result.sections.context} />
+          {entry.analysis.company && (
+            <CompanyCard company={entry.analysis.company} />
+          )}
+          <SkillsSection skills={entry.analysis.skills} />
+          <MetaCard meta={entry.analysis.meta} />
+
+          <SectionEyebrow label={t.result.sections.nextSteps} />
+          <div className="bg-card rounded-lg border p-4">
+            <h3 className="text-foreground mb-3 text-sm font-semibold tracking-tight">
+              {t.landing.demo.questionsTitle}
+            </h3>
+            <ul className="space-y-2">
+              {entry.analysis.questionsToAsk.map((q, i) => (
+                <li
+                  key={i}
+                  className="text-foreground/90 flex gap-2 text-sm leading-relaxed"
+                >
+                  <span
+                    aria-hidden
+                    className="text-[color:var(--accent-violet)] mt-0.5 select-none"
+                  >
+                    —
+                  </span>
+                  <span>{q}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="pt-1">
+            <Button onClick={onExit} className="gap-2">
+              {t.landing.demo.bannerCta}
+              <ArrowRight className="size-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* RIGHT — source */}
+        <aside
+          className={cn(
+            "bg-card rounded-lg border lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]",
+            mobileTab === "analysis" && "hidden lg:block"
+          )}
+        >
+          <div className="lg:hidden">
+            <MobileTabs tab={mobileTab} onChange={onTab} />
+          </div>
+          <SourceHighlighter source={entry.jobText} />
+        </aside>
+      </div>
+    </HighlightProvider>
   );
 }
