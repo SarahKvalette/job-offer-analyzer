@@ -110,13 +110,18 @@ export const jobAnalysisSchema = z.object({
 export type JobAnalysis = z.infer<typeof jobAnalysisSchema>;
 
 /**
- * Current storage schema version for entries written to localStorage.
+ * Current storage schema version for stored analysis entries.
+ *
+ * Persistence moved from localStorage to IndexedDB (Dexie) in v3; the shape
+ * is the same, so the same `migrateStoredEntry` upgrade path is reused when
+ * reading rows back out of IndexedDB (and when importing the legacy
+ * localStorage blob one last time).
  *
  * Bump when a new required field lands on `StoredAnalysis` and add the
  * matching upgrade step in `lib/storage/migrate.ts`. Optional fields can be
- * added without bumping (e.g. verdict / company today).
+ * added without bumping.
  */
-export const CURRENT_STORAGE_VERSION = 2;
+export const CURRENT_STORAGE_VERSION = 3;
 
 export const applicationStatusEnum = z.enum([
   "interested",
@@ -150,8 +155,23 @@ export const applicationSchema = z.object({
   tags: z.array(z.string()).default([]),
   contacts: z.array(contactSchema).default([]),
   nextAction: nextActionSchema.nullable().default(null),
+  /** Dedicated follow-up date (epoch ms) surfaced on the "À relancer" screen. */
+  followUpDate: z.number().nullable().default(null),
+  /** Free-text reason captured when the application is closed/rejected. */
+  closedReason: z.string().default(""),
 });
 export type Application = z.infer<typeof applicationSchema>;
+
+/**
+ * User's stance on a single analysis signal (red/green flag), keyed by its
+ * verbatim phrase. Lets someone contest the AI's call and keep a note — their
+ * override is stored locally, next to the original (Phase 5).
+ */
+export const contestedSignalSchema = z.object({
+  contested: z.boolean(),
+  note: z.string().optional(),
+});
+export type ContestedSignal = z.infer<typeof contestedSignalSchema>;
 
 export const questionStageEnum = z.enum(["rh", "technique", "manager", "final"]);
 export type QuestionStage = z.infer<typeof questionStageEnum>;
@@ -168,8 +188,23 @@ export const storedAnalysisSchema = z.object({
   schemaVersion: z.number().optional(),
   id: z.string(),
   createdAt: z.number(),
+  /** Last time any field on this entry changed (epoch ms). Added in v3. */
+  updatedAt: z.number().optional(),
   jobText: z.string(),
   analysis: jobAnalysisSchema,
+  /** Detected language of the posting ("fr" by default). Added in v3. */
+  language: z.enum(["fr", "en"]).optional(),
+  /** Editable overrides for the extracted company / title (shown on cards). */
+  companyOverride: z.string().optional(),
+  titleOverride: z.string().optional(),
+  /** User's own 0–10 score, kept alongside the AI verdict (Phase 5). */
+  userScoreOverride: z.number().min(0).max(10).nullable().optional(),
+  /** Pre-computed example entries flag themselves so the UI can mark them. */
+  isDemo: z.boolean().optional(),
+  /** Recruiter questions the user has ticked off (Phase 4 checklist). */
+  checkedQuestions: z.array(z.string()).optional(),
+  /** Per-signal contest state, keyed by the signal's verbatim phrase. */
+  contestedSignals: z.record(z.string(), contestedSignalSchema).optional(),
   /**
    * Lazy-computed result of the question categorisation tool call.
    * Cached on the stored entry so we don't re-prompt every time the user

@@ -48,10 +48,20 @@ export function migrateStoredEntry(raw: unknown): StoredAnalysis | null {
           tags: [],
           contacts: [],
           nextAction: null,
+          followUpDate: null,
+          closedReason: "",
         },
       };
     }
     version = 2;
+  }
+
+  // v2 → v3 : persistence moved to IndexedDB and several optional fields were
+  // added (updatedAt, language, userScoreOverride, isDemo, contestedSignals,
+  // followUpDate / closedReason on `application`). All optional, so there's no
+  // shape backfill — we only stamp the version.
+  if (version < 3) {
+    version = 3;
   }
 
   return {

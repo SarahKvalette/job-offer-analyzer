@@ -24,6 +24,8 @@ function defaultApplication(entry: StoredAnalysis): Application {
       tags: [],
       contacts: [],
       nextAction: null,
+      followUpDate: null,
+      closedReason: "",
     }
   );
 }

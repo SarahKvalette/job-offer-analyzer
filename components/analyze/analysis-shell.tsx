@@ -102,6 +102,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
       createdAt: Date.now(),
       jobText: demo.jobText,
       analysis: demo.analysis,
+      isDemo: true,
     });
     setViewingId(null);
     setMobileTab("analysis");

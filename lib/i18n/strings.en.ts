@@ -637,7 +637,7 @@ export const strings = {
   },
   history: {
     title: "History",
-    subtitle: "Last 10 analyses, kept locally in your browser.",
+    subtitle: "Your analyses, kept locally in your browser.",
     searchPlaceholder: "Search by title, company, location…",
     clearSearch: "Clear search",
     close: "Close",
