@@ -22,8 +22,13 @@ describe.runIf(process.env.RUN_LIVE_EVAL)("FR analysis eval (live)", () => {
       const header =
         "id | dom | lang | détectée | douteux | note | sentiment | rouges | verts | séniorité | citations | flags non sourcés";
       appendFileSync(OUT, header + "\n");
+      const only = process.env.EVAL_ONLY?.split(",").map((s) => s.trim());
+      const postings = only
+        ? EVAL_POSTINGS_FR.filter((p) => only.includes(p.id))
+        : EVAL_POSTINGS_FR;
       let count = 0;
-      for (const p of EVAL_POSTINGS_FR) {
+      for (const p of postings) {
+        if (count > 0) await new Promise((r) => setTimeout(r, 3000)); // ease Groq burst
         let row: string;
         try {
           const res = await fetch(`${BASE}/api/analyze`, {
@@ -60,7 +65,7 @@ describe.runIf(process.env.RUN_LIVE_EVAL)("FR analysis eval (live)", () => {
         count++;
       }
       appendFileSync(OUT, "===DONE===\n");
-      expect(count).toBe(EVAL_POSTINGS_FR.length);
+      expect(count).toBe(postings.length);
     },
     600000
   );
