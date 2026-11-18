@@ -2,7 +2,7 @@
 
 Decode any tech job posting in 10 seconds. Paste a job offer (or drop a PDF, or paste a LinkedIn / WTTJ / Indeed URL, or use the Chrome extension), get the **real** seniority, hidden red flags, the skills they forgot to list, 3-5 questions to ask the recruiter, a personalised fit score against your profile, and tailored cover letters / messages / ATS keywords on demand.
 
-Powered by Llama 3.3 70B via [Groq](https://groq.com)'s function-calling API for guaranteed structured output (free tier, sub-second latency). Every red flag and skill cites a verbatim quote from the source — hover to highlight it in the original posting.
+Powered by `gpt-oss-120b` via [Groq](https://groq.com)'s function-calling API for guaranteed structured output (free tier). Every red flag and skill cites a verbatim quote from the source — hover to highlight it in the original posting, and citations are verified against the text (French-tolerant) with a single corrective re-analysis when needed.
 
 ## What it does
 
@@ -29,7 +29,7 @@ Everything is stored in your browser's localStorage. The Vercel deployment is st
 - **Next.js 16** (App Router, React 19, Server Components)
 - **TypeScript** strict
 - **Tailwind v4** + **shadcn/ui** patterns over **@base-ui/react** primitives
-- **`openai`** SDK pointed at Groq's OpenAI-compatible endpoint (`llama-3.3-70b-versatile`), with `tool_choice` forcing the function call — no JSON parsing, no regex
+- **`openai`** SDK pointed at Groq's OpenAI-compatible endpoint (`openai/gpt-oss-120b`), with `tool_choice` forcing the function call — no JSON parsing, no regex
 - **Zod** as the single source of truth: types are inferred from the schema, the JSON Schema sent to the model is generated from the same schema, and the response is re-validated against it
 - **localStorage** for history (max 10), profile, CV — all versioned (`schemaVersion`) with migrations
 - **Vitest** for unit tests (140+ tests covering schema, detectors, fit score, profile storage migrations)

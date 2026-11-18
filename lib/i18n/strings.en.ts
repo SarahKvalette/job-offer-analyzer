@@ -679,6 +679,6 @@ export const strings = {
     failed: "Couldn't sign in.",
     logout: "Sign out",
   },
-} as const;
+};
 
 export type Strings = typeof strings;
