@@ -304,6 +304,26 @@ export const strings: Strings = {
       analysis: "Analyse",
       source: "Annonce",
     },
+    contest: {
+      honesty:
+        "Cette analyse est une aide à la décision, pas un verdict. À vous de trancher.",
+      notSourced: "non sourcé",
+      notSourcedTooltip:
+        "Cette citation est introuvable telle quelle dans l'annonce.",
+      disagree: "Pas d'accord",
+      restore: "Rétablir",
+      contested: "Contesté",
+      notePlaceholder: "Pourquoi n'êtes-vous pas d'accord ? (facultatif)",
+      expandAria: "Afficher la citation et contester ce signal",
+      sourceHint: "Surligné dans l'annonce.",
+    },
+    score: {
+      yourScore: "Votre note",
+      aiScore: "Note IA",
+      set: "Ajuster ma note",
+      clear: "Réinitialiser",
+      yourLabel: "la vôtre",
+    },
   },
   profile: {
     triggerLabel: "Profil",

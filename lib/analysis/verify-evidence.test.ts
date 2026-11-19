@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   isSourced,
+  locateQuote,
   normalizeForMatch,
   verifyAnalysisEvidence,
 } from "./verify-evidence";
@@ -41,6 +42,28 @@ describe("isSourced — French typography tolerance", () => {
 
   it("rejects an empty quote", () => {
     expect(isSourced("   ", source)).toBe(false);
+  });
+});
+
+describe("locateQuote", () => {
+  const source =
+    "Rémunération : 45 000 € selon profil. Vous rejoignez l’équipe produit.";
+
+  it("returns the ORIGINAL range despite French typography", () => {
+    const loc = locateQuote(source, "l'équipe produit");
+    expect(loc).not.toBeNull();
+    // The highlighted slice keeps the original curly apostrophe + accents.
+    expect(source.slice(loc!.start, loc!.end)).toBe("l’équipe produit");
+  });
+
+  it("locates across a non-breaking space / thousands separator", () => {
+    const loc = locateQuote(source, "45 000 €");
+    expect(loc).not.toBeNull();
+    expect(source.slice(loc!.start, loc!.end)).toBe("45 000 €");
+  });
+
+  it("returns null when the quote is absent", () => {
+    expect(locateQuote(source, "télétravail")).toBeNull();
   });
 });
 

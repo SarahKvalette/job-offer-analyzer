@@ -33,6 +33,56 @@ export function isSourced(quote: string, source: string): boolean {
   return normalizeForMatch(source).includes(q);
 }
 
+/** Per-character normalization (no whitespace collapse) so original and
+ *  normalized strings stay index-aligned for `locateQuote`. */
+function normalizeChar(ch: string): string {
+  if (/\s/.test(ch)) return " ";
+  return ch
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[‘’ʼ′‵]/g, "'")
+    .replace(/[“”„«»″]/g, '"')
+    .replace(/[‐-―−]/g, "-")
+    .toLowerCase();
+}
+
+/**
+ * Locate a quote inside the ORIGINAL source using French-tolerant matching,
+ * returning the character range in the original string (so the highlighter
+ * can mark the real text, accents and typography intact). Returns null when
+ * the quote can't be located.
+ */
+export function locateQuote(
+  source: string,
+  quote: string
+): { start: number; end: number } | null {
+  const q = quote.trim();
+  if (q.length === 0) return null;
+
+  let normSource = "";
+  const map: number[] = []; // map[k] = original index of normSource[k]
+  for (let i = 0; i < source.length; i++) {
+    const n = normalizeChar(source[i]);
+    for (let k = 0; k < n.length; k++) {
+      normSource += n[k];
+      map.push(i);
+    }
+  }
+
+  let normNeedle = "";
+  for (let i = 0; i < q.length; i++) normNeedle += normalizeChar(q[i]);
+  if (normNeedle.length === 0) return null;
+
+  const idx = normSource.indexOf(normNeedle);
+  if (idx === -1) return null;
+  return { start: map[idx], end: map[idx + normNeedle.length - 1] + 1 };
+}
+
+/** Whether a quote can be located (and therefore highlighted) in the source. */
+export function isLocatable(quote: string, source: string): boolean {
+  return locateQuote(source, quote) !== null;
+}
+
 export type EvidenceOrigin =
   | "skill.required"
   | "skill.niceToHave"

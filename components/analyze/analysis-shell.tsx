@@ -354,7 +354,12 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
 
           <MobileTabs tab={mobileTab} onChange={setMobileTab} />
 
-          <VerdictHero entry={current} />
+          <VerdictHero
+            entry={current}
+            onScoreOverride={(n) =>
+              saveAnalysis({ ...current, userScoreOverride: n })
+            }
+          />
           <QuickScanStrip entry={current} />
           <div className="-mt-1 flex flex-wrap gap-2">
             <GhostJobBadge
@@ -365,8 +370,13 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
 
           <SectionEyebrow label={t.result.sections.realityCheck} />
           <RealityCheck
-            realityCheck={current.analysis.realityCheck}
-            jobText={current.jobText}
+            entry={current}
+            onContest={(phrase, next) => {
+              const map = { ...(current.contestedSignals ?? {}) };
+              if (next === null) delete map[phrase];
+              else map[phrase] = next;
+              saveAnalysis({ ...current, contestedSignals: map });
+            }}
           />
           <FitScoreCard analysis={current.analysis} />
           <SalaryCard
@@ -555,10 +565,7 @@ function DemoAnalysisView({
           </div>
 
           <SectionEyebrow label={t.result.sections.realityCheck} />
-          <RealityCheck
-            realityCheck={entry.analysis.realityCheck}
-            jobText={entry.jobText}
-          />
+          <RealityCheck entry={entry} />
           <FitScoreCard analysis={entry.analysis} />
           <SalaryCard analysis={entry.analysis} jobText={entry.jobText} />
 
@@ -655,10 +662,7 @@ function AnalysisReadonlyBody({ entry }: { entry: StoredAnalysis }) {
         <GhostJobBadge analysis={entry.analysis} jobText={entry.jobText} />
       </div>
       <SectionEyebrow label={t.result.sections.realityCheck} />
-      <RealityCheck
-        realityCheck={entry.analysis.realityCheck}
-        jobText={entry.jobText}
-      />
+      <RealityCheck entry={entry} />
       <FitScoreCard analysis={entry.analysis} />
       <SalaryCard analysis={entry.analysis} jobText={entry.jobText} />
       <SectionEyebrow label={t.result.sections.context} />
