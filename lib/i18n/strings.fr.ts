@@ -423,6 +423,41 @@ export const strings: Strings = {
         extractFailed: "Impossible d'extraire le texte de ce PDF.",
         extractedToast: "CV extrait — relisez le texte ci-dessous.",
       },
+      data: {
+        title: "Vos données",
+        advantage:
+          "Tout reste sur votre appareil — pas de compte, rien à créer, rien n'est envoyé pour être conservé.",
+        limit:
+          "Pas de synchronisation entre appareils, et vider votre navigateur efface tout. Exportez régulièrement.",
+        serverNote:
+          "Précision honnête : le texte d'une annonce transite bien par le serveur le temps de l'analyse (quelques secondes), mais il n'y est jamais conservé.",
+        export: "Exporter mes analyses",
+        exportEmpty: "Aucune analyse à exporter.",
+        exportFilename: "joa-analyses.json",
+        exportToast: (n: number) =>
+          `${n} analyse${n === 1 ? "" : "s"} exportée${n === 1 ? "" : "s"}.`,
+        import: "Importer…",
+        chooseMode: (n: number) =>
+          `${n} analyse${n === 1 ? "" : "s"} dans le fichier. Fusionner avec les vôtres, ou tout remplacer ?`,
+        merge: "Fusionner",
+        replace: "Remplacer",
+        cancel: "Annuler",
+        importedToast: (n: number) =>
+          `${n} analyse${n === 1 ? "" : "s"} importée${n === 1 ? "" : "s"}.`,
+        reminder: (n: number) =>
+          `Vous avez ${n} analyses enregistrées — pensez à exporter une sauvegarde.`,
+        errors: {
+          unreadable: "Fichier illisible (JSON invalide).",
+          wrong_type: "Ce n'est pas un fichier d'export Job Offer Analyzer.",
+          empty: "Aucune analyse valide dans ce fichier.",
+        },
+        measure: {
+          title: "Ce que nous mesurons",
+          body: "Des totaux anonymes, pour améliorer l'outil : analyse lancée, analyse enregistrée, relance programmée, retour après 7 jours, exemple ouvert.",
+          never:
+            "Jamais : le texte des annonces, les noms d'entreprise, aucun identifiant, aucun cookie, aucun traçage individuel. Mesure via Vercel Web Analytics (sans cookies).",
+        },
+      },
     },
     actions: {
       saved: "Enregistré",

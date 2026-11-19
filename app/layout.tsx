@@ -8,6 +8,7 @@ import { HistoryDrawer } from "@/components/history/drawer";
 import { ProfileDrawer } from "@/components/profile/drawer";
 import { CommandPalette } from "@/components/palette/command-palette";
 import { Toaster } from "@/components/ui/sonner";
+import { AnalyticsProvider } from "@/components/analytics-provider";
 import { OwnerOnly } from "@/components/layout/owner-only";
 import { t } from "@/lib/i18n";
 import Link from "next/link";
@@ -106,6 +107,7 @@ export default function RootLayout({
             </main>
           </div>
           <Toaster richColors closeButton />
+          <AnalyticsProvider />
         </ThemeProvider>
       </body>
     </html>

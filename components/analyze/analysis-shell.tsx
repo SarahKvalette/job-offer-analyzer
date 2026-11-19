@@ -34,6 +34,7 @@ import {
   isDemoId,
   type DemoAnalysis,
 } from "@/lib/data/demo-analyses-fr";
+import { trackEvent } from "@/lib/analytics";
 import {
   getById,
   getHistorySnapshot,
@@ -124,12 +125,14 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
     setMobileTab("analysis");
     window.history.replaceState(null, "", `/?demo=${demo.id}`);
     if (typeof window !== "undefined") window.scrollTo({ top: 0 });
+    trackEvent("demo_example_opened");
   }, []);
 
   const handleSubmit = useCallback(async (jobText: string) => {
     setDemoEntry(null);
     setPendingEntry(null);
     setSubmitting(true);
+    trackEvent("analysis_started");
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
@@ -186,6 +189,7 @@ export function AnalysisShell({ initialId }: { initialId: string | null }) {
         titleOverride: titleChanged ? title : undefined,
       };
       saveAnalysis(entry);
+      trackEvent("analysis_saved");
       setPendingEntry(null);
       setViewingId(entry.id);
       window.history.replaceState(null, "", `/?id=${entry.id}`);

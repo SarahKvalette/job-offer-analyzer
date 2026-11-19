@@ -242,6 +242,38 @@ export function updateApplication(
   if (database) void database.analyses.put(updated).catch(() => {});
 }
 
+/**
+ * Bulk import from a parsed export file.
+ *   - "replace": wipe the store and set the imported entries.
+ *   - "merge": upsert by id (imported entry wins on a conflict).
+ * Returns the number of entries written.
+ */
+export function importAnalyses(
+  entries: StoredAnalysis[],
+  mode: "merge" | "replace"
+): number {
+  const stamped = entries.map((e) => stampEntry(e));
+  const database = getDb();
+
+  if (mode === "replace") {
+    setCache([...stamped]);
+    if (database) {
+      void database.analyses
+        .clear()
+        .then(() => database.analyses.bulkPut(stamped))
+        .catch(() => {});
+    }
+    return stamped.length;
+  }
+
+  // merge — imported entries overwrite same-id entries.
+  const byId = new Map(cache.map((e) => [e.id, e]));
+  for (const e of stamped) byId.set(e.id, e);
+  setCache([...byId.values()]);
+  if (database) void database.analyses.bulkPut(stamped).catch(() => {});
+  return stamped.length;
+}
+
 export function subscribeToHistory(listener: () => void): () => void {
   if (typeof window === "undefined") return () => {};
   // Ensure data is loading as soon as something subscribes (on mount).

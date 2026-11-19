@@ -419,6 +419,41 @@ export const strings = {
         extractFailed: "Couldn't extract text from this PDF.",
         extractedToast: "CV extracted — review the text below.",
       },
+      data: {
+        title: "Your data",
+        advantage:
+          "Everything stays on your device — no account, nothing to create, nothing sent for storage.",
+        limit:
+          "No sync between devices, and clearing your browser erases everything. Export regularly.",
+        serverNote:
+          "Honest note: a posting's text does transit the server for the few seconds of analysis, but it's never stored there.",
+        export: "Export my analyses",
+        exportEmpty: "No analysis to export yet.",
+        exportFilename: "joa-analyses.json",
+        exportToast: (n: number) =>
+          `${n} ${n === 1 ? "analysis" : "analyses"} exported.`,
+        import: "Import…",
+        chooseMode: (n: number) =>
+          `${n} ${n === 1 ? "analysis" : "analyses"} in the file. Merge with yours, or replace everything?`,
+        merge: "Merge",
+        replace: "Replace",
+        cancel: "Cancel",
+        importedToast: (n: number) =>
+          `${n} ${n === 1 ? "analysis" : "analyses"} imported.`,
+        reminder: (n: number) =>
+          `You have ${n} saved analyses — consider exporting a backup.`,
+        errors: {
+          unreadable: "This file couldn't be read (invalid JSON).",
+          wrong_type: "This isn't a Job Offer Analyzer export file.",
+          empty: "No valid analysis found in this file.",
+        },
+        measure: {
+          title: "What we measure",
+          body: "Anonymous totals, to improve the tool: analysis started, analysis saved, follow-up scheduled, return after 7 days, example opened.",
+          never:
+            "Never: the posting text, company names, any identifier, any cookie, any individual tracking. Measured with Vercel Web Analytics (cookieless).",
+        },
+      },
     },
     actions: {
       saved: "Saved",

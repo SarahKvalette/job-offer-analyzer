@@ -20,6 +20,7 @@ import { StackPicker } from "./stack-picker";
 import { TagInput } from "./tag-input";
 import { WeightSlider } from "./weight-slider";
 import { CvSection } from "./cv-section";
+import { DataSection } from "./data-section";
 import { GoogleSection } from "./google-section";
 import { DigestSection } from "./digest-section";
 import { SearchesSection } from "./searches-section";
@@ -249,6 +250,9 @@ export function ProfileDrawer() {
 
                 {/* CV */}
                 <CvSection />
+
+                {/* Your data — export / import, privacy */}
+                <DataSection />
 
                 {/* Weights */}
                 <Section

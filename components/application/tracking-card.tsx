@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TagInput } from "@/components/profile/tag-input";
 import { updateApplication } from "@/lib/storage/history";
+import { trackEvent } from "@/lib/analytics";
 import type {
   Application,
   Contact,
@@ -144,6 +145,7 @@ function FollowUpField({
     updateApplication(entryId, {
       followUpDate: value ? new Date(value).getTime() : null,
     });
+    if (value) trackEvent("followup_scheduled");
   };
 
   return (
