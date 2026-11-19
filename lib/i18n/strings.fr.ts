@@ -455,6 +455,11 @@ export const strings: Strings = {
       add: "Définir la prochaine action",
       clear: "Effacer",
     },
+    followUp: {
+      title: "Date de relance",
+      hint: "Apparaît dans « À relancer aujourd'hui » sur l'écran d'accueil.",
+      clear: "Effacer",
+    },
     appliedAtLabel: "Postulé le",
     relativeDays: (n: number) => `il y a ${n} jour${n === 1 ? "" : "s"}`,
     section: {
@@ -676,6 +681,21 @@ export const strings: Strings = {
       days: (n: number) => `il y a ${n} j`,
     },
     unknownCompany: "Inconnue",
+  },
+  save: {
+    title: "Enregistrer cette analyse ?",
+    companyLabel: "Entreprise",
+    companyPlaceholder: "Nom de l'entreprise",
+    titleLabel: "Intitulé du poste",
+    titlePlaceholder: "Intitulé du poste",
+    cta: "Enregistrer",
+    discard: "Abandonner",
+    hint: "Rien n'est enregistré tant que vous ne cliquez pas sur Enregistrer — votre analyse reste sur votre appareil.",
+  },
+  followups: {
+    title: "À relancer aujourd'hui",
+    overdue: (n: number) => `${n} j de retard`,
+    today: "Aujourd'hui",
   },
   errors: {
     analysisFailed: "Échec de l'analyse.",

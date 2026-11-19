@@ -127,7 +127,10 @@ export function hydrateHistory(): Promise<void> {
     cache = sortDesc(entries);
     hydrated = true;
     invalidateSnapshot();
-    notifyChange();
+    // Defer to a macrotask so subscribers' setState never lands inside a React
+    // render pass (hydration resolves as a microtask during concurrent render).
+    if (typeof window !== "undefined") setTimeout(notifyChange, 0);
+    else notifyChange();
   })()
     .catch(() => {
       hydrated = true;

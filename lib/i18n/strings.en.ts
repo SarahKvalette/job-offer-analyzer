@@ -448,6 +448,11 @@ export const strings = {
       add: "Set next action",
       clear: "Clear",
     },
+    followUp: {
+      title: "Follow-up date",
+      hint: "Shows up in “Follow up today” on the home screen.",
+      clear: "Clear",
+    },
     appliedAtLabel: "Applied on",
     relativeDays: (n: number) => `${n} day${n === 1 ? "" : "s"} ago`,
     section: {
@@ -663,6 +668,21 @@ export const strings = {
       days: (n: number) => `${n}d ago`,
     },
     unknownCompany: "Unknown",
+  },
+  save: {
+    title: "Save this analysis?",
+    companyLabel: "Company",
+    companyPlaceholder: "Company name",
+    titleLabel: "Job title",
+    titlePlaceholder: "Job title",
+    cta: "Save",
+    discard: "Discard",
+    hint: "Nothing is saved until you click Save — your analysis stays on your device.",
+  },
+  followups: {
+    title: "Follow up today",
+    overdue: (n: number) => `${n}d overdue`,
+    today: "Today",
   },
   errors: {
     analysisFailed: "Analysis failed.",

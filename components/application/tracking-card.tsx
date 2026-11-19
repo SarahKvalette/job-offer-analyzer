@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { ClipboardList, Plus, Trash2, Calendar, Loader2 } from "lucide-react";
+import {
+  ClipboardList,
+  Plus,
+  Trash2,
+  Calendar,
+  CalendarClock,
+  Loader2,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TagInput } from "@/components/profile/tag-input";
@@ -47,6 +54,7 @@ export function TrackingCard({ entry }: { entry: StoredAnalysis }) {
       <CardContent className="space-y-5">
         <NotesField entry={entry} initial={app.notes} />
         <TagsField entryId={entry.id} initial={app.tags} />
+        <FollowUpField entryId={entry.id} initial={app.followUpDate} />
         <NextActionField entry={entry} initial={app.nextAction} />
         <ContactsField entryId={entry.id} initial={app.contacts} />
         {app.appliedAt && (
@@ -116,6 +124,50 @@ function TagsField({
         onChange={(next) => updateApplication(entryId, { tags: next })}
         placeholder={t.application.tags.placeholder}
       />
+    </section>
+  );
+}
+
+function FollowUpField({
+  entryId,
+  initial,
+}: {
+  entryId: string;
+  initial: number | null;
+}) {
+  const [dateStr, setDateStr] = useState(
+    initial ? new Date(initial).toISOString().slice(0, 10) : ""
+  );
+
+  const commit = (value: string) => {
+    setDateStr(value);
+    updateApplication(entryId, {
+      followUpDate: value ? new Date(value).getTime() : null,
+    });
+  };
+
+  return (
+    <section>
+      <h3 className="text-foreground mb-1.5 flex items-center gap-1.5 text-sm font-medium">
+        <CalendarClock className="size-4" />
+        {t.application.followUp.title}
+      </h3>
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="date"
+          value={dateStr}
+          onChange={(e) => commit(e.target.value)}
+          className="bg-card border-input focus-visible:ring-ring/30 focus-visible:border-ring rounded-md border px-3 py-1.5 text-sm outline-none focus-visible:ring-2"
+        />
+        {dateStr && (
+          <Button variant="ghost" size="sm" onClick={() => commit("")}>
+            {t.application.followUp.clear}
+          </Button>
+        )}
+      </div>
+      <p className="text-muted-foreground mt-1 text-[11px]">
+        {t.application.followUp.hint}
+      </p>
     </section>
   );
 }
