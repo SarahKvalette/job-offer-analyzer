@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useHighlight } from "@/components/analyze/highlight-context";
+import { locateQuote } from "@/lib/analysis/verify-evidence";
 import { t } from "@/lib/i18n";
 
 type Segment = { text: string; highlighted: boolean };
@@ -11,14 +12,16 @@ function findSegments(source: string, needle: string | null): Segment[] {
   if (!needle || needle.length === 0) {
     return [{ text: source, highlighted: false }];
   }
-  const idx = source.indexOf(needle);
-  if (idx === -1) {
+  // French-tolerant location: matches across non-breaking spaces, curly
+  // apostrophes, accents and « » even when the model's quote differs slightly.
+  const loc = locateQuote(source, needle);
+  if (!loc) {
     return [{ text: source, highlighted: false }];
   }
   return [
-    { text: source.slice(0, idx), highlighted: false },
-    { text: source.slice(idx, idx + needle.length), highlighted: true },
-    { text: source.slice(idx + needle.length), highlighted: false },
+    { text: source.slice(0, loc.start), highlighted: false },
+    { text: source.slice(loc.start, loc.end), highlighted: true },
+    { text: source.slice(loc.end), highlighted: false },
   ];
 }
 

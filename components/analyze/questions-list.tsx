@@ -37,6 +37,14 @@ export function QuestionsList({ entry }: { entry: StoredAnalysis }) {
 
   const categorized = entry.categorizedQuestions ?? null;
 
+  const checked = new Set(entry.checkedQuestions ?? []);
+  const toggleChecked = (q: string) => {
+    const next = new Set(entry.checkedQuestions ?? []);
+    if (next.has(q)) next.delete(q);
+    else next.add(q);
+    saveAnalysis({ ...entry, checkedQuestions: Array.from(next) });
+  };
+
   const handleCategorize = async () => {
     if (questions.length === 0) return;
     setPending(true);
@@ -128,9 +136,11 @@ export function QuestionsList({ entry }: { entry: StoredAnalysis }) {
             onTabChange={setTab}
             questions={questions}
             categorized={categorized}
+            checked={checked}
+            onToggle={toggleChecked}
           />
         ) : (
-          <FlatList items={questions} />
+          <FlatList items={questions} checked={checked} onToggle={toggleChecked} />
         )}
       </CardContent>
     </Card>
@@ -146,18 +156,41 @@ function pickQuestions(
   return categorized[tab];
 }
 
-function FlatList({ items }: { items: string[] }) {
+function FlatList({
+  items,
+  checked,
+  onToggle,
+}: {
+  items: string[];
+  checked: Set<string>;
+  onToggle: (q: string) => void;
+}) {
   return (
-    <ol className="space-y-3">
-      {items.map((q, i) => (
-        <li key={i} className="flex gap-3">
-          <span className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium">
-            {i + 1}
-          </span>
-          <p className="text-sm leading-relaxed">{q}</p>
-        </li>
-      ))}
-    </ol>
+    <ul className="space-y-1">
+      {items.map((q, i) => {
+        const isChecked = checked.has(q);
+        return (
+          <li key={i}>
+            <label className="hover:bg-muted/40 flex min-h-[44px] cursor-pointer items-start gap-3 rounded-lg px-2 py-2 transition-colors">
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={() => onToggle(q)}
+                className="accent-foreground mt-0.5 size-4 shrink-0"
+              />
+              <span
+                className={cn(
+                  "text-sm leading-relaxed",
+                  isChecked && "text-muted-foreground line-through"
+                )}
+              >
+                {q}
+              </span>
+            </label>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -166,11 +199,15 @@ function CategorizedView({
   onTabChange,
   questions,
   categorized,
+  checked,
+  onToggle,
 }: {
   tab: Tab;
   onTabChange: (next: Tab) => void;
   questions: string[];
   categorized: CategorizedQuestions;
+  checked: Set<string>;
+  onToggle: (q: string) => void;
 }) {
   const counts: Record<Tab, number> = {
     all: questions.length,
@@ -222,16 +259,20 @@ function CategorizedView({
 
       {/* Panels */}
       <Tabs.Panel value="all">
-        <FlatList items={questions} />
+        <FlatList items={questions} checked={checked} onToggle={onToggle} />
       </Tabs.Panel>
       {STAGE_ORDER.map((stage) => (
         <Tabs.Panel key={stage} value={stage}>
           {categorized[stage].length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              No questions in this stage.
+              {t.result.questions.empty}
             </p>
           ) : (
-            <FlatList items={categorized[stage]} />
+            <FlatList
+              items={categorized[stage]}
+              checked={checked}
+              onToggle={onToggle}
+            />
           )}
         </Tabs.Panel>
       ))}

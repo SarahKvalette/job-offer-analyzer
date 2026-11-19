@@ -14,11 +14,13 @@ import {
 } from "@/lib/storage/profile";
 import type { UserProfile, ProfileWeights } from "@/lib/schemas/profile";
 import { t } from "@/lib/i18n";
+import { useOwner } from "@/lib/hooks/use-owner";
 import { cn } from "@/lib/utils";
 import { StackPicker } from "./stack-picker";
 import { TagInput } from "./tag-input";
 import { WeightSlider } from "./weight-slider";
 import { CvSection } from "./cv-section";
+import { DataSection } from "./data-section";
 import { GoogleSection } from "./google-section";
 import { DigestSection } from "./digest-section";
 import { SearchesSection } from "./searches-section";
@@ -30,6 +32,9 @@ export function ProfileDrawer() {
   const [resetOpen, setResetOpen] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Cloud sections (Google / digest / saved searches) are owner-only — hidden
+  // from the public, who only use the local analyser + fit score.
+  const { isOwner } = useOwner();
 
   // Mounted check (avoids SSR mismatch on the trigger badge dot).
   const mounted = useSyncExternalStore(
@@ -229,17 +234,25 @@ export function ProfileDrawer() {
                   />
                 </Section>
 
-                {/* Google */}
-                <GoogleSection />
+                {/* Cloud sections — owner-only */}
+                {isOwner && (
+                  <>
+                    {/* Google */}
+                    <GoogleSection />
 
-                {/* Digest email */}
-                <DigestSection />
+                    {/* Digest email */}
+                    <DigestSection />
 
-                {/* Saved searches (daily polling → /discover) */}
-                <SearchesSection />
+                    {/* Saved searches (daily polling → /discover) */}
+                    <SearchesSection />
+                  </>
+                )}
 
                 {/* CV */}
                 <CvSection />
+
+                {/* Your data — export / import, privacy */}
+                <DataSection />
 
                 {/* Weights */}
                 <Section

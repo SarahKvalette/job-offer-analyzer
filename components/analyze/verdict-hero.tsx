@@ -18,11 +18,19 @@ import type { StoredAnalysis } from "@/lib/schemas/analysis";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 
-export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
+export function VerdictHero({
+  entry,
+  onScoreOverride,
+}: {
+  entry: StoredAnalysis;
+  /** When provided (a saved analysis), the user can set their own score. */
+  onScoreOverride?: (score: number | null) => void;
+}) {
   const verdict = computeFallbackVerdict(entry.analysis);
   const meta = sentimentMeta[verdict.sentiment];
   const sentimentLabel = t.result.sentiment[verdict.sentiment];
   const [copied, setCopied] = useState(false);
+  const userScore = entry.userScoreOverride ?? null;
 
   const handleCopy = async () => {
     const md = analysisToMarkdown(entry);
@@ -63,6 +71,13 @@ export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
           <p className="text-foreground mt-2 text-xl font-medium leading-snug tracking-tight">
             {verdict.oneLiner}
           </p>
+          {onScoreOverride && (
+            <ScoreOverride
+              aiScore={verdict.score}
+              value={userScore}
+              onChange={onScoreOverride}
+            />
+          )}
         </div>
         <div className="flex shrink-0 gap-2">
           <Button
@@ -92,6 +107,68 @@ export function VerdictHero({ entry }: { entry: StoredAnalysis }) {
         </div>
       </div>
     </Card>
+  );
+}
+
+function ScoreOverride({
+  aiScore,
+  value,
+  onChange,
+}: {
+  aiScore: number;
+  value: number | null;
+  onChange: (score: number | null) => void;
+}) {
+  const [open, setOpen] = useState(value !== null);
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="text-muted-foreground hover:text-foreground mt-2 text-xs underline underline-offset-2"
+      >
+        {t.result.score.set}
+      </button>
+    );
+  }
+
+  const v = value ?? Math.round(aiScore);
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <span className="text-muted-foreground text-xs">
+        {t.result.score.yourScore}
+      </span>
+      <input
+        type="range"
+        min={0}
+        max={10}
+        step={1}
+        value={v}
+        onChange={(e) => onChange(Number(e.target.value))}
+        aria-label={t.result.score.yourScore}
+        className="accent-foreground h-4 w-32 max-w-full"
+      />
+      <span className="text-foreground font-mono text-sm font-semibold tabular-nums">
+        {value ?? v}/10
+      </span>
+      <span className="text-muted-foreground text-[11px]">
+        · {t.result.score.aiScore} {aiScore}/10
+      </span>
+      {value !== null && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            onChange(null);
+            setOpen(false);
+          }}
+        >
+          {t.result.score.clear}
+        </Button>
+      )}
+    </div>
   );
 }
 

@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { t } from "@/lib/i18n";
+import { useOwner } from "@/lib/hooks/use-owner";
 import { cn } from "@/lib/utils";
 
 type Item = {
@@ -41,6 +42,7 @@ export function CommandPalette() {
   const [query, setQuery] = useState("");
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
+  const { isOwner } = useOwner();
 
   const items = useSyncExternalStore(
     subscribeToHistory,
@@ -114,13 +116,18 @@ export function CommandPalette() {
         icon: <ArrowRight className="size-4 opacity-50" />,
         onRun: () => navigateTo("/stats"),
       },
-      {
-        id: "open-discover",
-        group: "navigate",
-        label: t.palette.actions.openDiscover,
-        icon: <Radar className="size-4" />,
-        onRun: () => navigateTo("/discover"),
-      },
+      // Discover is an owner-only (server-polled) feed — hide it for the public.
+      ...(isOwner
+        ? [
+            {
+              id: "open-discover",
+              group: "navigate" as const,
+              label: t.palette.actions.openDiscover,
+              icon: <Radar className="size-4" />,
+              onRun: () => navigateTo("/discover"),
+            },
+          ]
+        : []),
       {
         id: "open-profile",
         group: "navigate",
@@ -163,7 +170,7 @@ export function CommandPalette() {
     ];
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, resolvedTheme]);
+  }, [items, resolvedTheme, isOwner]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

@@ -22,11 +22,27 @@ export const strings = {
     openHistory: "Open history",
   },
   landing: {
-    eyebrow: "LLM-native posting analysis",
-    title: "Decode any tech job posting.",
+    eyebrow: "Analyse d'annonces par IA",
+    title: "Décryptez n'importe quelle annonce d'emploi.",
     subtitle:
-      "Get a verdict, the real seniority, hidden red flags, and the right questions to ask the recruiter — in 10 seconds.",
-    privacyHint: "Stored locally · Nothing shared · ⌘ + Enter to submit",
+      "Un verdict, la vraie séniorité, les signaux d'alerte cachés et les bonnes questions à poser au recruteur — en 10 secondes.",
+    // Honest privacy line (see Phase 6): the analysis transits the server, but
+    // nothing is stored there; your tracking stays on your device.
+    privacyHint:
+      "Suivi gardé sur votre appareil · Annonce analysée puis non conservée · ⌘ + Entrée pour lancer",
+    demo: {
+      heading: "Pas d'annonce sous la main ?",
+      subheading:
+        "Essayez avec une annonce d'exemple — gratuit, instantané, sans rien coller.",
+      ownLabel: "Ou analysez votre propre annonce ci-dessous",
+      tryAria: (label: string) => `Essayer l'exemple : ${label}`,
+      badge: "Exemple",
+      bannerTitle: "Ceci est une annonce d'exemple",
+      bannerBody:
+        "Analyse pré-calculée, à titre de démonstration. Collez votre propre annonce pour une analyse personnalisée.",
+      bannerCta: "Analyser ma propre annonce",
+      questionsTitle: "Questions à poser au recruteur",
+    },
   },
   features: {
     verdict: {
@@ -287,6 +303,24 @@ export const strings = {
       analysis: "Analysis",
       source: "Source",
     },
+    contest: {
+      honesty: "This analysis is a decision aid, not a verdict. You decide.",
+      notSourced: "not sourced",
+      notSourcedTooltip: "This quote can't be found in the posting as written.",
+      disagree: "Disagree",
+      restore: "Restore",
+      contested: "Contested",
+      notePlaceholder: "Why do you disagree? (optional)",
+      expandAria: "Show the quote and contest this signal",
+      sourceHint: "Highlighted in the posting.",
+    },
+    score: {
+      yourScore: "Your score",
+      aiScore: "AI score",
+      set: "Adjust my score",
+      clear: "Reset",
+      yourLabel: "yours",
+    },
   },
   profile: {
     triggerLabel: "Profile",
@@ -385,6 +419,41 @@ export const strings = {
         extractFailed: "Couldn't extract text from this PDF.",
         extractedToast: "CV extracted — review the text below.",
       },
+      data: {
+        title: "Your data",
+        advantage:
+          "Everything stays on your device — no account, nothing to create, nothing sent for storage.",
+        limit:
+          "No sync between devices, and clearing your browser erases everything. Export regularly.",
+        serverNote:
+          "Honest note: a posting's text does transit the server for the few seconds of analysis, but it's never stored there.",
+        export: "Export my analyses",
+        exportEmpty: "No analysis to export yet.",
+        exportFilename: "joa-analyses.json",
+        exportToast: (n: number) =>
+          `${n} ${n === 1 ? "analysis" : "analyses"} exported.`,
+        import: "Import…",
+        chooseMode: (n: number) =>
+          `${n} ${n === 1 ? "analysis" : "analyses"} in the file. Merge with yours, or replace everything?`,
+        merge: "Merge",
+        replace: "Replace",
+        cancel: "Cancel",
+        importedToast: (n: number) =>
+          `${n} ${n === 1 ? "analysis" : "analyses"} imported.`,
+        reminder: (n: number) =>
+          `You have ${n} saved analyses — consider exporting a backup.`,
+        errors: {
+          unreadable: "This file couldn't be read (invalid JSON).",
+          wrong_type: "This isn't a Job Offer Analyzer export file.",
+          empty: "No valid analysis found in this file.",
+        },
+        measure: {
+          title: "What we measure",
+          body: "Anonymous totals, to improve the tool: analysis started, analysis saved, follow-up scheduled, return after 7 days, example opened.",
+          never:
+            "Never: the posting text, company names, any identifier, any cookie, any individual tracking. Measured with Vercel Web Analytics (cookieless).",
+        },
+      },
     },
     actions: {
       saved: "Saved",
@@ -430,6 +499,11 @@ export const strings = {
       dueAtLabel: "Due",
       none: "No next action.",
       add: "Set next action",
+      clear: "Clear",
+    },
+    followUp: {
+      title: "Follow-up date",
+      hint: "Shows up in “Follow up today” on the home screen.",
       clear: "Clear",
     },
     appliedAtLabel: "Applied on",
@@ -621,7 +695,7 @@ export const strings = {
   },
   history: {
     title: "History",
-    subtitle: "Last 10 analyses, kept locally in your browser.",
+    subtitle: "Your analyses, kept locally in your browser.",
     searchPlaceholder: "Search by title, company, location…",
     clearSearch: "Clear search",
     close: "Close",
@@ -648,6 +722,21 @@ export const strings = {
     },
     unknownCompany: "Unknown",
   },
+  save: {
+    title: "Save this analysis?",
+    companyLabel: "Company",
+    companyPlaceholder: "Company name",
+    titleLabel: "Job title",
+    titlePlaceholder: "Job title",
+    cta: "Save",
+    discard: "Discard",
+    hint: "Nothing is saved until you click Save — your analysis stays on your device.",
+  },
+  followups: {
+    title: "Follow up today",
+    overdue: (n: number) => `${n}d overdue`,
+    today: "Today",
+  },
   errors: {
     analysisFailed: "Analysis failed.",
   },
@@ -663,6 +752,6 @@ export const strings = {
     failed: "Couldn't sign in.",
     logout: "Sign out",
   },
-} as const;
+};
 
 export type Strings = typeof strings;

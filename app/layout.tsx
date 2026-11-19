@@ -8,6 +8,8 @@ import { HistoryDrawer } from "@/components/history/drawer";
 import { ProfileDrawer } from "@/components/profile/drawer";
 import { CommandPalette } from "@/components/palette/command-palette";
 import { Toaster } from "@/components/ui/sonner";
+import { AnalyticsProvider } from "@/components/analytics-provider";
+import { OwnerOnly } from "@/components/layout/owner-only";
 import { t } from "@/lib/i18n";
 import Link from "next/link";
 import { LayoutGrid, BarChart3, Radar } from "lucide-react";
@@ -74,15 +76,17 @@ export default function RootLayout({
                     {t.pipeline.triggerLabel}
                   </span>
                 </Link>
-                <Link
-                  href="/discover"
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium transition-colors"
-                >
-                  <Radar className="size-4" />
-                  <span className="hidden sm:inline">
-                    {t.discover.triggerLabel}
-                  </span>
-                </Link>
+                <OwnerOnly>
+                  <Link
+                    href="/discover"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium transition-colors"
+                  >
+                    <Radar className="size-4" />
+                    <span className="hidden sm:inline">
+                      {t.discover.triggerLabel}
+                    </span>
+                  </Link>
+                </OwnerOnly>
                 <Link
                   href="/stats"
                   className="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium transition-colors"
@@ -103,6 +107,7 @@ export default function RootLayout({
             </main>
           </div>
           <Toaster richColors closeButton />
+          <AnalyticsProvider />
         </ThemeProvider>
       </body>
     </html>

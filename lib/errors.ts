@@ -4,7 +4,8 @@ export type AnalysisErrorCode =
   | "input_too_long"
   | "model_no_tool_call"
   | "model_invalid_output"
-  | "upstream_error";
+  | "upstream_error"
+  | "rate_limited";
 
 export class AnalysisError extends Error {
   readonly code: AnalysisErrorCode;

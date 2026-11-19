@@ -21,8 +21,12 @@ import {
   type GenerationKind,
   type GenerationTone,
 } from "@/lib/prompts/generate-content";
+import { detectLanguage, languageLabel } from "@/lib/analysis/detect-language";
+import { verifyAnalysisEvidence } from "@/lib/analysis/verify-evidence";
 
-const MODEL = "llama-3.3-70b-versatile";
+// Groq decommissioned llama-3.3-70b-versatile; gpt-oss-120b is the current
+// flagship with function-calling support (free tier).
+const MODEL = "openai/gpt-oss-120b";
 const BASE_URL = "https://api.groq.com/openai/v1";
 const MAX_INPUT_CHARS = 25_000;
 
@@ -42,20 +46,14 @@ function getClient(): OpenAI {
   return cachedClient;
 }
 
-export async function analyzeJobPosting(jobText: string): Promise<JobAnalysis> {
-  const trimmed = jobText.trim();
-  if (trimmed.length === 0) {
-    throw new AnalysisError("empty_input", "Paste a job posting first.");
-  }
-  if (trimmed.length > MAX_INPUT_CHARS) {
-    throw new AnalysisError(
-      "input_too_long",
-      `Job posting is too long (${trimmed.length} characters, max ${MAX_INPUT_CHARS}).`
-    );
-  }
-
-  const client = getClient();
-
+/**
+ * One extraction round-trip: forced tool call → JSON parse → Zod validation.
+ * Throws AnalysisError (mapped to an HTTP error by the route).
+ */
+async function callExtractOnce(
+  client: OpenAI,
+  messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]
+): Promise<JobAnalysis> {
   let response;
   try {
     response = await client.chat.completions.create({
@@ -66,13 +64,7 @@ export async function analyzeJobPosting(jobText: string): Promise<JobAnalysis> {
         type: "function",
         function: { name: EXTRACT_TOOL_NAME },
       },
-      messages: [
-        { role: "system", content: extractSystemPrompt },
-        {
-          role: "user",
-          content: `Analyze the following job posting:\n\n<posting>\n${trimmed}\n</posting>`,
-        },
-      ],
+      messages,
     });
   } catch (err) {
     throw new AnalysisError(
@@ -116,6 +108,66 @@ export async function analyzeJobPosting(jobText: string): Promise<JobAnalysis> {
   }
 
   return parsed.data;
+}
+
+export async function analyzeJobPosting(jobText: string): Promise<JobAnalysis> {
+  const trimmed = jobText.trim();
+  if (trimmed.length === 0) {
+    throw new AnalysisError("empty_input", "Paste a job posting first.");
+  }
+  if (trimmed.length > MAX_INPUT_CHARS) {
+    throw new AnalysisError(
+      "input_too_long",
+      `Job posting is too long (${trimmed.length} characters, max ${MAX_INPUT_CHARS}).`
+    );
+  }
+
+  const client = getClient();
+  const language = detectLanguage(trimmed);
+
+  const baseMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+    { role: "system", content: extractSystemPrompt },
+    {
+      role: "user",
+      content: `Detected language: ${languageLabel(
+        language
+      )}. Respond entirely in that language.\n\nAnalyze the following job posting:\n\n<posting>\n${trimmed}\n</posting>`,
+    },
+  ];
+
+  const first = await callExtractOnce(client, baseMessages);
+  const firstReport = verifyAnalysisEvidence(first, trimmed);
+
+  // "Good enough": no fabricated flag quotes and most quotes are sourced.
+  const acceptable =
+    firstReport.unsourcedFlagCount === 0 &&
+    (firstReport.total === 0 || firstReport.sourced / firstReport.total >= 0.6);
+  if (acceptable) return first;
+
+  // One corrective re-analysis: the previous attempt quoted text that isn't
+  // a verbatim substring of the posting. (brief Phase 3: "relancée une fois".)
+  const retryMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+    ...baseMessages,
+    {
+      role: "user",
+      content:
+        'Your previous analysis quoted text that is NOT a verbatim substring of the posting. Redo it: every "evidence" and "phrase" MUST be copied character-for-character from the posting above (keep the accents, apostrophes, « » and spacing exactly). Drop any item you cannot quote literally.',
+    },
+  ];
+
+  let second: JobAnalysis;
+  try {
+    second = await callExtractOnce(client, retryMessages);
+  } catch {
+    return first; // Retry failed — the first result is still usable.
+  }
+  const secondReport = verifyAnalysisEvidence(second, trimmed);
+
+  // Keep whichever has fewer unsourced quotes (tie → the corrected retry).
+  const firstBad = firstReport.unsourced.length + firstReport.unsourcedFlagCount;
+  const secondBad =
+    secondReport.unsourced.length + secondReport.unsourcedFlagCount;
+  return secondBad <= firstBad ? second : first;
 }
 
 /**

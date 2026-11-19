@@ -47,6 +47,8 @@ export function Kanban() {
 
   const [tagFilter, setTagFilter] = useState("");
   const [minScore, setMinScore] = useState(0);
+  const [mobileColumn, setMobileColumn] =
+    useState<ApplicationStatus>("interested");
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<ApplicationStatus | null>(
     null
@@ -164,12 +166,40 @@ export function Kanban() {
         </div>
       )}
 
+      {/* Mobile: one status at a time via tabs (no horizontal scroll). */}
+      <div className="flex flex-wrap gap-1.5 lg:hidden" role="tablist">
+        {COLUMN_ORDER.map((column) => {
+          const active = column === mobileColumn;
+          return (
+            <button
+              key={column}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setMobileColumn(column)}
+              className={cn(
+                "inline-flex min-h-[36px] items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                active
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border text-muted-foreground hover:bg-muted/50"
+              )}
+            >
+              {t.pipeline.columns[column]}
+              <span className="font-mono tabular-nums opacity-70">
+                {grouped[column].length}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="grid gap-3 lg:grid-cols-6">
         {COLUMN_ORDER.map((column) => (
           <Column
             key={column}
             status={column}
             items={grouped[column]}
+            activeOnMobile={column === mobileColumn}
             isDropTarget={dragOverColumn === column}
             onDragOver={(e) => {
               e.preventDefault();
@@ -199,6 +229,7 @@ export function Kanban() {
 function Column({
   status,
   items,
+  activeOnMobile,
   isDropTarget,
   onDragOver,
   onDragLeave,
@@ -210,6 +241,7 @@ function Column({
 }: {
   status: ApplicationStatus;
   items: StoredAnalysis[];
+  activeOnMobile: boolean;
   isDropTarget: boolean;
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: () => void;
@@ -227,12 +259,15 @@ function Column({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={cn(
-        "bg-muted/30 flex min-h-[200px] flex-col rounded-lg border p-2 transition-colors",
+        "bg-muted/30 min-h-[200px] flex-col rounded-lg border p-2 transition-colors",
+        // Mobile: only the active tab's column is shown. Desktop: all six.
+        activeOnMobile ? "flex" : "hidden",
+        "lg:flex",
         isDropTarget && "border-primary bg-primary/5"
       )}
     >
       <header className="mb-2 flex items-center justify-between px-1">
-        <h2 className="text-foreground text-xs font-semibold tracking-tight">
+        <h2 className="text-foreground text-xs font-semibold tracking-tight lg:text-xs">
           {label}
         </h2>
         <span className="text-muted-foreground font-mono text-[10px] tabular-nums">
